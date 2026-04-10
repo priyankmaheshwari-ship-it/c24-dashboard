@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARS24 Marketing Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   CARS24 MARKETING INTELLIGENCE — Vision Pro UI
+   Inspired by Apple glassmorphism + CARS24 brand
+   ═══════════════════════════════════════════════ */
+:root {
+  /* CARS24 Brand — New Indigo Identity */
+  --c24-primary: #4B3AFF;
+  --c24-primary-soft: #6C5FFF;
+  --c24-primary-glow: rgba(75,58,255,0.15);
+
+  /* Apple Vision Pro palette */
+  --cream: #F7F5F0;
+  --cream-dark: #EDE9E3;
+  --emerald: #1A6B4A;
+  --emerald-light: #2D8F64;
+  --emerald-soft: rgba(26,107,74,0.08);
+
+  /* Glass */
+  --glass-bg: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.6);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --glass-shadow-hover: 0 12px 40px rgba(0,0,0,0.09), 0 2px 6px rgba(0,0,0,0.05);
+
+  /* Gradients */
+  --grad-indigo: linear-gradient(135deg, #4B3AFF 0%, #8B7CFF 100%);
+  --grad-lavender: linear-gradient(135deg, #E0DCFF 0%, #EDE9FF 100%);
+  --grad-green: linear-gradient(135deg, #1A6B4A 0%, #2D8F64 60%, #4ECDC4 100%);
+  --grad-amber: linear-gradient(135deg, #F5A623 0%, #F7C948 100%);
+
+  /* Text */
+  --text-primary: #1C1C1E;
+  --text-secondary: #6E6E73;
+  --text-tertiary: #AEAEB2;
+  --text-white: #FFFFFF;
+
+  /* Semantic */
+  --red: #FF3B30;
+  --red-soft: rgba(255,59,48,0.08);
+  --green: #34C759;
+  --green-soft: rgba(52,199,89,0.08);
+  --amber: #FF9F0A;
+  --amber-soft: rgba(255,159,10,0.08);
+  --blue: #007AFF;
+  --blue-soft: rgba(0,122,255,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--cream);
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(75,58,255,0.06) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 100%, rgba(26,107,74,0.05) 0%, transparent 50%);
+  min-height: 100vh;
+  color: var(--text-primary);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── TOP NAV (Glassmorphism bar) ──────────────── */
+.topnav {
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(247,245,240,0.78);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 12px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-left { display: flex; align-items: center; gap: 14px; }
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 800; font-size: 15px; color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+.brand-mark {
+  background: var(--grad-indigo);
+  color: white; font-weight: 900; font-size: 12px;
+  padding: 5px 9px; border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+.brand-divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); }
+.brand-sub { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+
+.nav-controls { display: flex; align-items: center; gap: 10px; }
+.pill-select {
+  appearance: none; border: none; outline: none;
+  background: rgba(0,0,0,0.04);
+  border-radius: 100px; padding: 7px 30px 7px 14px;
+  font-size: 12px; font-weight: 600; font-family: inherit;
+  color: var(--text-primary); cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236E6E73' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  transition: all 0.2s ease;
+}
+.pill-select:hover { background-color: rgba(0,0,0,0.07); }
+.pill-select:focus { box-shadow: 0 0 0 3px var(--c24-primary-glow); }
+
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--emerald-soft); border-radius: 100px;
+  padding: 5px 12px; font-size: 11px; font-weight: 600; color: var(--emerald);
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--emerald);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ─── MAIN LAYOUT ──────────────────────────────── */
+.page { max-width: 1440px; margin: 0 auto; padding: 24px 28px 60px; }
+
+/* ─── HERO KPI STRIP ──────────────────────────── */
+.hero-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-bottom: 24px;
+}
+.hero-card {
+  border-radius: 20px; padding: 22px 24px;
+  position: relative; overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hero-card:hover { transform: translateY(-2px); }
+
+.hero-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.hero-glass:hover { box-shadow: var(--glass-shadow-hover); }
+
+.hero-gradient-indigo {
+  background: var(--grad-indigo); color: white;
+  box-shadow: 0 8px 32px rgba(75,58,255,0.25);
+}
+.hero-gradient-indigo:hover { box-shadow: 0 12px 40px rgba(75,58,255,0.35); }
+
+.hero-gradient-green {
+  background: var(--grad-green); color: white;
+  box-shadow: 0 8px 32px rgba(26,107,74,0.25);
+}
+.hero-gradient-green:hover { box-shadow: 0 12px 40px rgba(26,107,74,0.35); }
+
+.hero-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.8px; opacity: 0.7; margin-bottom: 8px;
+}
+.hero-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+.hero-sub { font-size: 11px; font-weight: 500; margin-top: 6px; opacity: 0.65; }
+.hero-pct { font-size: 13px; font-weight: 700; margin-top: 6px; }
+.hero-pct.up { color: var(--emerald); }
+.hero-pct.down { color: var(--red); }
+.hero-gradient-indigo .hero-pct.up,
+.hero-gradient-green .hero-pct.up { color: rgba(255,255,255,0.9); }
+.hero-gradient-indigo .hero-pct.down,
+.hero-gradient-green .hero-pct.down { color: #FFE0E0; }
+
+/* Decorative orb on gradient cards */
+.hero-gradient-indigo::after, .hero-gradient-green::after {
+  content: ''; position: absolute; right: -20px; top: -20px;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+}
+
+/* ─── CONTENT GRID ─────────────────────────────── */
+.content-grid {
+  display: grid; grid-template-columns: 1fr 320px; gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1200px) { .content-grid { grid-template-columns: 1fr; } }
+
+/* ─── GLASS CARD ───────────────────────────────── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease;
+}
+.glass-card:hover { box-shadow: var(--glass-shadow-hover); }
+
+.card-head {
+  padding: 18px 24px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
+  display: flex; align-items: center; gap: 10px;
+}
+.platform-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0;
+}
+.dot-google { background: var(--grad-indigo); }
+.dot-meta { background: var(--grad-green); }
+.platform-tag {
+  font-size: 10px; font-weight: 700; padding: 3px 10px;
+  border-radius: 100px; letter-spacing: 0.5px;
+}
+.tag-google { background: rgba(75,58,255,0.08); color: var(--c24-primary); }
+.tag-meta { background: var(--emerald-soft); color: var(--emerald); }
+
+/* ─── DATA TABLE ───────────────────────────────── */
+.table-wrap { overflow-x: auto; padding: 0 8px 12px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+thead th {
+  padding: 8px 12px; text-align: right;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-tertiary);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  white-space: nowrap; position: sticky; top: 0;
+  background: rgba(255,255,255,0.9);
+}
+thead th:first-child, thead th:nth-child(2) { text-align: left; }
+thead th.hl { color: var(--c24-primary); }
+
+tbody tr {
+  transition: background 0.15s ease;
+}
+tbody tr:hover { background: rgba(75,58,255,0.03); }
+
+tbody tr.total-row td { font-weight: 700; }
+tbody tr.total-row { background: rgba(75,58,255,0.04); }
+tbody tr.total-row:hover { background: rgba(75,58,255,0.07); }
+
+td {
+  padding: 7px 12px; text-align: right;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+td:first-child {
+  text-align: left; color: var(--text-secondary);
+  font-size: 11px; font-weight: 500; white-space: nowrap;
+}
+td:nth-child(2) {
+  text-align: left; font-weight: 600;
+  color: var(--text-primary); white-space: nowrap;
+}
+.zero-val { color: var(--text-tertiary); }
+.pct-pos { color: var(--emerald); font-weight: 700; }
+.pct-neg { color: var(--red); font-weight: 700; }
+.pct-warn { color: var(--amber); font-weight: 700; }
+.cell-alert { background: rgba(255,59,48,0.06) !important; border-radius: 4px; }
+.col-sep { border-left: 1px solid rgba(0,0,0,0.06); }
+
+/* ─── ALERTS PANEL ─────────────────────────────── */
+.alerts-panel {
+  position: sticky; top: 80px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+}
+.alerts-head {
+  padding: 16px 20px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.alerts-title { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 8px; }
+.alert-count-badge {
+  font-size: 10px; font-weight: 800; color: white;
+  padding: 2px 7px; border-radius: 100px; min-width: 20px; text-align: center;
+}
+.alerts-body { padding: 10px 12px; max-height: 78vh; overflow-y: auto; }
+.alerts-body::-webkit-scrollbar { width: 4px; }
+.alerts-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
+
+/* Alert items */
+.alert-item {
+  border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+  border-left: 4px solid; transition: transform 0.15s ease;
+}
+.alert-item:hover { transform: translateX(2px); }
+
+.alert-urgent   { background: rgba(255,59,48,0.06);  border-color: var(--red); }
+.alert-critical { background: rgba(255,59,48,0.05);  border-color: #E53935; }
+.alert-high     { background: rgba(75,58,255,0.06);  border-color: var(--c24-primary); }
+.alert-warning  { background: rgba(255,159,10,0.06); border-color: var(--amber); }
+.alert-positive { background: rgba(52,199,89,0.06);  border-color: var(--green); }
+.alert-info     { background: rgba(0,122,255,0.05);  border-color: var(--blue); }
+
+.alert-label {
+  font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.9px; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.alert-urgent  .alert-label { color: var(--red); }
+.alert-critical .alert-label { color: #E53935; }
+.alert-high    .alert-label { color: var(--c24-primary); }
+.alert-warning .alert-label { color: #D97706; }
+.alert-positive .alert-label { color: #16A34A; }
+.alert-info    .alert-label { color: var(--blue); }
+
+.alert-impact { font-size: 12px; font-weight: 700; color: var(--text-primary); line-height: 1.35; margin-bottom: 3px; }
+.alert-context { font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 6px; }
+.alert-action {
+  font-size: 10px; font-weight: 600; display: inline-block;
+  padding: 3px 10px; border-radius: 100px;
+}
+.alert-urgent  .alert-action { background: rgba(255,59,48,0.1); color: var(--red); }
+.alert-critical .alert-action { background: rgba(255,59,48,0.08); color: #E53935; }
+.alert-high    .alert-action { background: rgba(75,58,255,0.1); color: var(--c24-primary); }
+.alert-warning .alert-action { background: rgba(255,159,10,0.1); color: #B45309; }
+.alert-positive .alert-action { background: rgba(52,199,89,0.1); color: #15803D; }
+.alert-info    .alert-action { background: rgba(0,122,255,0.08); color: var(--blue); }
+
+.alert-impact-tag {
+  font-size: 9px; font-weight: 700; padding: 1px 7px;
+  border-radius: 100px; margin-left: 4px;
+}
+.tag-loss { background: rgba(255,59,48,0.1); color: var(--red); }
+.tag-gain { background: rgba(52,199,89,0.1); color: #15803D; }
+
+.section-divider {
+  font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-tertiary);
+  padding: 8px 4px 3px; margin-top: 4px;
+}
+.no-alerts {
+  text-align: center; padding: 36px 16px;
+  color: var(--text-secondary); font-size: 13px; font-weight: 500;
+}
+
+/* ─── LOADING / ERROR ──────────────────────────── */
+.loading { text-align: center; padding: 80px; color: var(--text-secondary); }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(0,0,0,0.06);
+  border-top-color: var(--c24-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-box {
+  background: rgba(255,59,48,0.06); border: 1px solid rgba(255,59,48,0.15);
+  border-radius: 14px; padding: 20px; color: var(--red); font-weight: 500; margin: 20px;
+}
+
+/* ─── RESPONSIVE ───────────────────────────────── */
+@media (max-width: 900px) {
+  .hero-strip { grid-template-columns: repeat(2, 1fr); }
+  .topnav { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+  .page { padding: 16px; }
+}
+@media (max-width: 600px) {
+  .hero-strip { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP NAV ══════════════════════════════════ -->
+<div class="topnav">
+  <div class="nav-left">
+    <div class="brand">
+      <span class="brand-mark">C24</span>
+      <span>CARS24</span>
+      <span class="brand-divider"></span>
+      <span class="brand-sub">Marketing Intelligence</span>
+    </div>
+  </div>
+  <div class="nav-controls">
+    <select id="date-select" class="pill-select"><option>Loading...</option></select>
+    <select id="city-select" class="pill-select"><option value="all">All Cities</option></select>
+    <div class="status-pill" id="run-badge">
+      <span class="status-dot"></span>
+      <span id="last-updated">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE CONTENT ═════════════════════════════ -->
+<div class="page">
+  <!-- HERO KPI STRIP -->
+  <div id="hero-strip" class="hero-strip"></div>
+
+  <!-- MAIN GRID: Tables + Alerts -->
+  <div class="content-grid">
+    <div id="main-content">
+      <div class="loading"><div class="spinner"></div>Loading dashboard data...</div>
+    </div>
+    <div class="alerts-panel" id="alerts-panel">
+      <div class="alerts-head">
+        <div class="alerts-title">Smart Alerts <span class="alert-count-badge" id="alert-count" style="background:var(--c24-primary)">0</span></div>
+      </div>
+      <div class="alerts-body" id="alerts-body">
+        <div class="no-alerts">Loading alerts...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ JAVASCRIPT (all logic preserved) ═════════ -->
+<script>
+// ─────────────────────────────────────────────
+//  DATA LOADER
+// ─────────────────────────────────────────────
+let ALL_DATA = [];
+const CSV_URL = 'data/dashboard_data.csv';
+
+function loadData() {
+  Papa.parse(CSV_URL, {
+    download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
+    complete: function(results) {
+      ALL_DATA = results.data;
+      if (!ALL_DATA.length) { showError('CSV loaded but no rows found.'); return; }
+      initControls();
+      renderAll();
+    },
+    error: function(err) {
+      showError('Could not load dashboard_data.csv. ' + err.message);
+    }
+  });
+}
+
+function showError(msg) {
+  document.getElementById('main-content').innerHTML = '<div class="error-box">' + msg + '</div>';
+}
+
+// ─────────────────────────────────────────────
+//  CONTROLS
+// ─────────────────────────────────────────────
+function initControls() {
+  const dates  = [...new Set(ALL_DATA.map(r => r.run_date))].sort().reverse();
+  const cities = [...new Set(ALL_DATA.map(r => r.city))].sort();
+  const ds = document.getElementById('date-select');
+  ds.innerHTML = dates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('');
+  const cs = document.getElementById('city-select');
+  cs.innerHTML = '<option value="all">All Cities</option>' +
+    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+  ds.addEventListener('change', renderAll);
+  cs.addEventListener('change', renderAll);
+}
+
+function formatDate(d) {
+  if (!d) return d;
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+function getFiltered() {
+  const date = document.getElementById('date-select').value;
+  const city = document.getElementById('city-select').value;
+  return ALL_DATA.filter(r => r.run_date === date && (city === 'all' || r.city === city));
+}
+
+function agg(rows, platform, campaign_type, sub_metric, col) {
+  return rows.filter(r => r.platform===platform && r.campaign_type===campaign_type && r.sub_metric===sub_metric)
+    .reduce((s,r) => s + (r[col]||0), 0);
+}
+
+function avgPct(rows, platform, campaign_type, sub_metric) {
+  const filtered = rows.filter(r => r.platform===platform && r.campaign_type===campaign_type && r.sub_metric===sub_metric && r.MTD_vs_LMTD !== null);
+  if (!filtered.length) return null;
+  const totalMTD = filtered.reduce((s,r) => s + (r.MTD||0), 0);
+  if (!totalMTD) return null;
+  const weighted = filtered.reduce((s,r) => s + (r.MTD_vs_LMTD||0) * (r.MTD||0), 0);
+  return Math.round(weighted / totalMTD * 10) / 10;
+}
+
+// ─────────────────────────────────────────────
+//  AGGREGATION (fixes All-Cities summing)
+// ─────────────────────────────────────────────
+const NUM_COLS = ['D1','LMTD','LM','MTD','PROJECTED','L7D','LL7D'];
+
+function aggregateSubRows(typeRows, sub) {
+  const matching = typeRows.filter(r => r.sub_metric === sub);
+  if (!matching.length) return null;
+  if (matching.length === 1) return matching[0];
+  const agg = {};
+  NUM_COLS.forEach(col => { agg[col] = matching.reduce((s, r) => s + (parseFloat(r[col]) || 0), 0); });
+  agg.MTD_vs_LMTD = agg.LMTD > 0 ? Math.round((agg.MTD - agg.LMTD) / agg.LMTD * 1000) / 10 : null;
+  return agg;
+}
+
+function computeAggCPC(typeRows) {
+  const spendAgg  = aggregateSubRows(typeRows, 'SPEND');
+  const clicksAgg = aggregateSubRows(typeRows, 'CLICKS');
+  if (!spendAgg || !clicksAgg) return null;
+  const cpc = {};
+  NUM_COLS.forEach(col => {
+    const s = parseFloat(spendAgg[col])  || 0;
+    const c = parseFloat(clicksAgg[col]) || 0;
+    cpc[col] = c > 0 ? Math.round(s / c * 100) / 100 : 0;
+  });
+  cpc.MTD_vs_LMTD = cpc.LMTD > 0 ? Math.round((cpc.MTD - cpc.LMTD) / cpc.LMTD * 1000) / 10 : null;
+  return cpc;
+}
+
+// ─────────────────────────────────────────────
+//  RENDER ALL
+// ─────────────────────────────────────────────
+function renderAll() {
+  const rows = getFiltered();
+  const date = document.getElementById('date-select').value;
+  const city = document.getElementById('city-select').value;
+
+  document.getElementById('last-updated').textContent = formatDate(date);
+  const mc = document.getElementById('main-content');
+
+  if (!rows.length) { mc.innerHTML = '<div class="error-box">No data for selected date/city.</div>'; return; }
+
+  buildHeroStrip(rows);
+  mc.innerHTML = buildGoogleTable(rows) + buildMetaTable(rows);
+  buildAlerts(rows, date, city);
+}
+
+// ─────────────────────────────────────────────
+//  HERO KPI STRIP
+// ─────────────────────────────────────────────
+function buildHeroStrip(rows) {
+  const gMTD  = agg(rows, 'Google', 'Google - Total',   'SPEND', 'MTD');
+  const mMTD  = agg(rows, 'Meta',   'Facebook - Total', 'SPEND', 'MTD');
+  const gD1   = agg(rows, 'Google', 'Google - Total',   'SPEND', 'D1');
+  const mD1   = agg(rows, 'Meta',   'Facebook - Total', 'SPEND', 'D1');
+  const gPct  = avgPct(rows, 'Google', 'Google - Total', 'SPEND');
+  const mPct  = avgPct(rows, 'Meta',   'Facebook - Total','SPEND');
+
+  document.getElementById('hero-strip').innerHTML = `
+    <div class="hero-card hero-gradient-indigo">
+      <div class="hero-label">Total MTD Spend</div>
+      <div class="hero-value">${fmtINR(gMTD + mMTD)}</div>
+      <div class="hero-sub">Google + Meta combined</div>
+    </div>
+    <div class="hero-card hero-glass">
+      <div class="hero-label" style="color:var(--c24-primary)">Google Ads MTD</div>
+      <div class="hero-value">${fmtINR(gMTD)}</div>
+      <div class="hero-pct ${gPct!==null?(gPct>=0?'up':'down'):''}">${gPct!==null?(gPct>0?'+':'')+gPct+'% vs LMTD':''}</div>
+    </div>
+    <div class="hero-card hero-gradient-green">
+      <div class="hero-label">Meta Ads MTD</div>
+      <div class="hero-value">${fmtINR(mMTD)}</div>
+      <div class="hero-pct ${mPct!==null?(mPct>=0?'up':'down'):''}">${mPct!==null?(mPct>0?'+':'')+mPct+'% vs LMTD':''}</div>
+    </div>
+    <div class="hero-card hero-glass">
+      <div class="hero-label" style="color:var(--emerald)">Yesterday (D-1)</div>
+      <div class="hero-value">${fmtINR(gD1 + mD1)}</div>
+      <div class="hero-sub">G: ${fmtINR(gD1)} &nbsp;·&nbsp; M: ${fmtINR(mD1)}</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  PLATFORM TABLES
+// ─────────────────────────────────────────────
+const GOOGLE_TYPES = [
+  { key: 'Google - Total',  label: 'Google Total',  isTotal: true },
+  { key: 'Google - PMAX',   label: 'PMAX',          isTotal: false },
+  { key: 'Google - UACi',   label: 'UAC Install',   isTotal: false },
+  { key: 'Google - UACe',   label: 'UAC Engagement',isTotal: false },
+  { key: 'Google - Search', label: 'Search',        isTotal: false },
+];
+const META_TYPES = [
+  { key: 'Facebook - Total',      label: 'FB Total',    isTotal: true },
+  { key: 'Facebook - Catalog',    label: 'Catalog',     isTotal: false },
+  { key: 'Facebook - Conversion', label: 'Conversion',  isTotal: false },
+];
+
+function buildGoogleTable(rows) {
+  return buildPlatformTable(rows, 'Google', GOOGLE_TYPES, 'Google Ads Performance', 'dot-google', 'tag-google');
+}
+function buildMetaTable(rows) {
+  return buildPlatformTable(rows, 'Meta', META_TYPES, 'Meta (Facebook) Performance', 'dot-meta', 'tag-meta');
+}
+
+function buildPlatformTable(rows, platform, types, title, dotCls, tagCls) {
+  let html = `<div class="glass-card">
+    <div class="card-head">
+      <div class="card-title">
+        <span class="platform-dot ${dotCls}"></span> ${title}
+      </div>
+      <span class="platform-tag ${tagCls}">${platform}</span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Type</th><th>Metric</th>
+        <th>D-1</th><th>LMTD</th><th>Last Month</th>
+        <th class="hl">MTD</th><th class="hl">vs LMTD</th>
+        <th>Projected</th><th class="col-sep">L7D</th><th>LL7D</th>
+      </tr></thead><tbody>`;
+
+  types.forEach(type => {
+    const typeRows = rows.filter(r => r.platform===platform && r.campaign_type===type.key);
+    ['SPEND','CLICKS','CPC'].forEach((sub, si) => {
+      const r = sub === 'CPC' ? computeAggCPC(typeRows) : aggregateSubRows(typeRows, sub);
+      const trClass = type.isTotal ? 'total-row' : '';
+      html += `<tr class="${trClass}">`;
+      html += `<td>${si === 0 ? type.label : ''}</td><td>${sub}</td>`;
+      if (r) {
+        const d1=parseFloat(r.D1)||0, lmtd=parseFloat(r.LMTD)||0, lm=parseFloat(r.LM)||0;
+        const mtd=parseFloat(r.MTD)||0, pct=r.MTD_vs_LMTD, proj=parseFloat(r.PROJECTED)||0;
+        const l7d=parseFloat(r.L7D)||0, ll7d=parseFloat(r.LL7D)||0;
+        const isAlert = (sub==='SPEND' && d1===0 && !type.isTotal);
+        html += `<td class="${isAlert?'cell-alert':''}">${fmtVal(d1,sub)}</td>`;
+        html += `<td>${fmtVal(lmtd,sub)}</td><td>${fmtVal(lm,sub)}</td>`;
+        html += `<td><strong>${fmtVal(mtd,sub)}</strong></td><td>${fmtPct(pct)}</td>`;
+        html += `<td>${fmtVal(proj,sub)}</td>`;
+        html += `<td class="col-sep">${fmtVal(l7d,sub)}</td><td>${fmtVal(ll7d,sub)}</td>`;
+      } else { html += '<td class="zero-val">—</td>'.repeat(8); }
+      html += '</tr>';
+    });
+  });
+  html += '</tbody></table></div></div>';
+  return html;
+}
+
+// ─────────────────────────────────────────────
+//  ALERTS ENGINE (manager-centric, ₹ impact)
+// ─────────────────────────────────────────────
+function getAggMetric(cityRows, platform, campaignType, sub, col) {
+  const typeRows = cityRows.filter(r => r.platform===platform && r.campaign_type===campaignType);
+  const agged = sub==='CPC' ? computeAggCPC(typeRows) : aggregateSubRows(typeRows, sub);
+  return agged ? (parseFloat(agged[col]) || 0) : 0;
+}
+function getAggPct(cityRows, platform, campaignType, sub) {
+  const typeRows = cityRows.filter(r => r.platform===platform && r.campaign_type===campaignType);
+  const agged = sub==='CPC' ? computeAggCPC(typeRows) : aggregateSubRows(typeRows, sub);
+  return agged ? agged.MTD_vs_LMTD : null;
+}
+
+function buildAlerts(rows, date, selectedCity) {
+  const isAll  = selectedCity === 'all';
+  const cities = [...new Set(rows.map(r => r.city))];
+  const GOOGLE_TYPES_SUB = [['Google - PMAX','PMAX'],['Google - UACi','UAC Install'],['Google - UACe','UAC Engage'],['Google - Search','Search']];
+  const META_TYPES_SUB = [['Facebook - Catalog','Catalog'],['Facebook - Conversion','Conversion']];
+  const alerts = [];
+
+  function push(level, score, impact, title, context, action) {
+    alerts.push({ level, score, impact, title, context, action });
+  }
+
+  cities.forEach(c => {
+    const cr = rows.filter(r => r.city === c);
+    ['Google','Meta'].forEach(platform => {
+      const totalKey = platform==='Google' ? 'Google - Total' : 'Facebook - Total';
+      const subTypes = platform==='Google' ? GOOGLE_TYPES_SUB : META_TYPES_SUB;
+      const spendD1=getAggMetric(cr,platform,totalKey,'SPEND','D1'),
+            spendMTD=getAggMetric(cr,platform,totalKey,'SPEND','MTD'),
+            spendLMTD=getAggMetric(cr,platform,totalKey,'SPEND','LMTD'),
+            spendLM=getAggMetric(cr,platform,totalKey,'SPEND','LM'),
+            spendProj=getAggMetric(cr,platform,totalKey,'SPEND','PROJECTED'),
+            spendPct=getAggPct(cr,platform,totalKey,'SPEND'),
+            clicksMTD=getAggMetric(cr,platform,totalKey,'CLICKS','MTD'),
+            clicksLMTD=getAggMetric(cr,platform,totalKey,'CLICKS','LMTD'),
+            cpcMTD=getAggMetric(cr,platform,totalKey,'CPC','MTD'),
+            cpcLMTD=getAggMetric(cr,platform,totalKey,'CPC','LMTD'),
+            clicksPct=clicksLMTD>0?Math.round((clicksMTD-clicksLMTD)/clicksLMTD*100):null,
+            cpcDelta=cpcLMTD>0&&cpcMTD>0?Math.round((cpcMTD-cpcLMTD)/cpcLMTD*100):0,
+            pacingPct=spendLM>0?spendProj/spendLM*100:null,
+            shortfall=spendLM>0?spendLM-spendProj:0,
+            extraCost=cpcLMTD>0&&cpcMTD>0?spendMTD*(1-cpcLMTD/cpcMTD):0,
+            loc=isAll?`${c} · ${platform}`:platform;
+      if(spendMTD===0) return;
+
+      if(spendD1===0) push('urgent',spendMTD,fmtINR(spendMTD)+' at risk',`Campaigns paused — ${loc}`,`Zero spend yesterday. Losing ~${fmtINR(spendMTD/9)}/day based on MTD pace.`,`Check campaign status & billing`);
+      if(spendPct!==null&&spendPct<-30){const lost=spendLMTD-spendMTD;push('critical',lost,fmtINR(lost)+' under-delivered',`Spend down ${Math.abs(Math.round(spendPct))}% — ${loc}`,`MTD ${fmtINR(spendMTD)} vs ${fmtINR(spendLMTD)} LMTD. Gap ~${fmtINR(Math.max(0,spendLM-spendProj))}.`,`Raise daily budget cap`);}
+      if(spendPct!==null&&spendPct>=-30&&spendPct<-15){const lost=spendLMTD-spendMTD;push('high',lost,fmtINR(lost)+' below pace',`Spend down ${Math.abs(Math.round(spendPct))}% — ${loc}`,`Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}.`,`Review budget utilisation`);}
+      if(cpcDelta>40) push('critical',extraCost,fmtINR(extraCost)+' extra cost',`CPC up ${cpcDelta}% — ${loc}`,`₹${cpcMTD.toFixed(0)} vs ₹${cpcLMTD.toFixed(0)} LMTD.`,`Audit bids & match types`);
+      if(cpcDelta>20&&cpcDelta<=40) push('high',extraCost,fmtINR(extraCost)+' efficiency drag',`CPC up ${cpcDelta}% — ${loc}`,`₹${cpcMTD.toFixed(0)} MTD vs ₹${cpcLMTD.toFixed(0)} LMTD.`,`Lower target CPA / review bids`);
+      if(pacingPct!==null&&pacingPct<75&&spendLM>0) push('high',shortfall,fmtINR(shortfall)+' shortfall',`Pacing ${Math.round(pacingPct)}% — ${loc}`,`Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}.`,`Increase daily budget`);
+      if(spendPct!==null&&clicksPct!==null&&clicksPct<-20&&spendPct>-10) push('warning',spendMTD*0.15,`${Math.abs(clicksPct)}% fewer clicks`,`CTR degrading — ${loc}`,`Clicks ${(clicksMTD/1000).toFixed(1)}K vs ${(clicksLMTD/1000).toFixed(1)}K LMTD.`,`Refresh creatives`);
+      if(spendPct!==null&&spendPct>20&&cpcDelta<=10) push('positive',spendMTD,`+${Math.round(spendPct)}%, CPC ${cpcDelta<=0?'down':'stable'}`,`Scaling efficiently — ${loc}`,`MTD ${fmtINR(spendMTD)} vs LMTD ${fmtINR(spendLMTD)}.`,`Scale budget 10–20%`);
+
+      if(!isAll) {
+        subTypes.forEach(([typeKey,typeLabel]) => {
+          const tRows=cr.filter(r=>r.platform===platform&&r.campaign_type===typeKey);
+          const tSpend=aggregateSubRows(tRows,'SPEND'),tClicks=aggregateSubRows(tRows,'CLICKS'),tCPC=computeAggCPC(tRows);
+          if(!tSpend) return;
+          const tMTD=parseFloat(tSpend.MTD)||0,tD1=parseFloat(tSpend.D1)||0,tLMTD=parseFloat(tSpend.LMTD)||0,tLM=parseFloat(tSpend.LM)||0,tProj=parseFloat(tSpend.PROJECTED)||0,tPct=tSpend.MTD_vs_LMTD;
+          const tCPCmtd=tCPC?parseFloat(tCPC.MTD)||0:0,tCPClm=tCPC?parseFloat(tCPC.LMTD)||0:0;
+          const tCkMTD=tClicks?parseFloat(tClicks.MTD)||0:0,tCkLMTD=tClicks?parseFloat(tClicks.LMTD)||0:0;
+          const tCkPct=tCkLMTD>0?Math.round((tCkMTD-tCkLMTD)/tCkLMTD*100):null;
+          const tCpcD=tCPClm>0&&tCPCmtd>0?Math.round((tCPCmtd-tCPClm)/tCPClm*100):0;
+          if(tMTD===0) return;
+          if(tD1===0) push('urgent',tMTD,fmtINR(tMTD)+' inactive',`${platform} ${typeLabel}: Zero spend yesterday`,`Campaign type went dark.`,`Unpause / check billing`);
+          if(tCpcD>30){const w=tMTD*(1-tCPClm/tCPCmtd);push('high',w,fmtINR(w)+' efficiency loss',`${platform} ${typeLabel}: CPC up ${tCpcD}%`,`₹${tCPCmtd.toFixed(0)} vs ₹${tCPClm.toFixed(0)} LMTD.`,`Review bids & targeting`);}
+          if(tLM>0&&tProj>0&&tProj/tLM<0.70) push('warning',tLM-tProj,fmtINR(tLM-tProj)+' shortfall',`${platform} ${typeLabel}: Pacing ${Math.round(tProj/tLM*100)}%`,`Projected ${fmtINR(tProj)} vs LM ${fmtINR(tLM)}.`,`Increase budget`);
+          if(tPct!==null&&tCkPct!==null&&tCkPct<-25&&tPct>-10) push('warning',tMTD*0.2,`${Math.abs(tCkPct)}% fewer clicks`,`${platform} ${typeLabel}: CTR dropping`,`Ad fatigue likely.`,`Refresh creatives`);
+          if(tPct!==null&&tPct>30&&tCpcD<=10) push('positive',tMTD,`+${Math.round(tPct)}% growth`,`${platform} ${typeLabel}: Strong performer`,`MTD ${fmtINR(tMTD)} vs LMTD ${fmtINR(tLMTD)}.`,`Increase budget here`);
+        });
+      }
+    });
+  });
+
+  if(isAll) {
+    const ranked=cities.map(c=>{const cr=rows.filter(r=>r.city===c);return{c,total:getAggMetric(cr,'Google','Google - Total','SPEND','MTD')+getAggMetric(cr,'Meta','Facebook - Total','SPEND','MTD'),gMTD:getAggMetric(cr,'Google','Google - Total','SPEND','MTD'),mMTD:getAggMetric(cr,'Meta','Facebook - Total','SPEND','MTD'),gPct:getAggPct(cr,'Google','Google - Total','SPEND'),gCPC:getAggMetric(cr,'Google','Google - Total','CPC','MTD'),gCPCLM:getAggMetric(cr,'Google','Google - Total','CPC','LMTD')};}).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+    if(ranked.length>0){const t=ranked[0];push('info',t.total,`G: ${fmtINR(t.gMTD)} · M: ${fmtINR(t.mMTD)}`,`#1 City: ${t.c}`,`Highest combined MTD spend.`,`Benchmark for other markets`);}
+    const eff=ranked.filter(x=>x.gMTD>50000&&x.gCPCLM>0&&x.gCPC>0).sort((a,b)=>(a.gCPC/a.gCPCLM)-(b.gCPC/b.gCPCLM));
+    if(eff.length>0){const e=eff[0],ep=Math.round((1-e.gCPC/e.gCPCLM)*100);if(ep>0)push('positive',e.gMTD,`CPC down ${ep}%`,`Most efficient: ${e.c} (Google)`,`₹${e.gCPC.toFixed(0)} vs ₹${e.gCPCLM.toFixed(0)} LMTD.`,`Increase budget in ${e.c}`);}
+  }
+
+  const ORDER={urgent:0,critical:1,high:2,warning:3,positive:4,info:5};
+  alerts.sort((a,b)=>ORDER[a.level]!==ORDER[b.level]?ORDER[a.level]-ORDER[b.level]:b.score-a.score);
+
+  const body=document.getElementById('alerts-body'),count=document.getElementById('alert-count');
+  const urgN=alerts.filter(a=>a.level==='urgent').length,critN=alerts.filter(a=>a.level==='critical'||a.level==='urgent').length;
+  count.textContent=critN||alerts.length;
+  count.style.background=urgN>0?'var(--red)':critN>0?'#E53935':alerts.length?'var(--c24-primary)':'var(--green)';
+
+  if(!alerts.length){body.innerHTML=`<div class="no-alerts">All metrics look healthy<br><small style="color:var(--text-tertiary)">${isAll?'All cities':selectedCity} · ${formatDate(date)}</small></div>`;return;}
+
+  const ICONS={urgent:'🚨',critical:'🔴',high:'⚡',warning:'⚠️',positive:'🚀',info:'📊'};
+  const LABELS={urgent:'Act Now',critical:'Critical',high:'High Priority',warning:'Watch',positive:'Scale Up',info:'Insight'};
+  const sections=[{key:'urgent',label:'Immediate Action'},{key:'critical',label:'Critical Issues'},{key:'high',label:'High Priority'},{key:'warning',label:'Watch'},{key:'positive',label:'Scale Opportunities'},{key:'info',label:'Strategic Insights'}];
+
+  let html='';
+  sections.forEach(sec=>{
+    const grp=alerts.filter(a=>a.level===sec.key);
+    if(!grp.length) return;
+    html+=`<div class="section-divider">${sec.label} (${grp.length})</div>`;
+    grp.forEach(a=>{
+      html+=`<div class="alert-item alert-${a.level}">
+        <div class="alert-label">${ICONS[a.level]} ${LABELS[a.level]}${a.impact?` <span class="alert-impact-tag ${a.level==='positive'||a.level==='info'?'tag-gain':'tag-loss'}">${a.impact}</span>`:''}</div>
+        <div class="alert-impact">${a.title}</div>
+        <div class="alert-context">${a.context}</div>
+        <span class="alert-action">→ ${a.action}</span>
+      </div>`;
+    });
+  });
+  body.innerHTML=html;
+}
+
+// ─────────────────────────────────────────────
+//  FORMATTERS
+// ─────────────────────────────────────────────
+function fmtINR(v) {
+  if (v===null||v===undefined||isNaN(v)) return '—';
+  if (v>=10000000) return '₹'+(v/10000000).toFixed(2)+' Cr';
+  if (v>=100000)   return '₹'+(v/100000).toFixed(2)+' L';
+  if (v>=1000)     return '₹'+(v/1000).toFixed(1)+'K';
+  return '₹'+Math.round(v).toLocaleString('en-IN');
+}
+function fmtVal(v,sub) {
+  if(v===null||v===undefined||isNaN(v)) return '<span class="zero-val">—</span>';
+  if(v===0) return '<span class="zero-val">0</span>';
+  if(sub==='SPEND') return fmtINR(v);
+  if(sub==='CLICKS') return Number(v).toLocaleString('en-IN');
+  if(sub==='CPC') return '₹'+Number(v).toFixed(0);
+  return v;
+}
+function fmtPct(v) {
+  if(v===null||v===undefined||isNaN(v)) return '<span class="zero-val">—</span>';
+  const cls=v>=10?'pct-pos':v<=-10?'pct-neg':'pct-warn';
+  return `<span class="${cls}">${v>0?'+':''}${v}%</span>`;
+}
+function pctClass(v) { return v===null||v===undefined?'':v>=10?'pct-pos':v<=-10?'pct-neg':'pct-warn'; }
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
