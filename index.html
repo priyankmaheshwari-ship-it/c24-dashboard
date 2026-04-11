@@ -592,9 +592,9 @@ function buildPlatformTable(rows, platform, types, title, dotCls, tagCls) {
     <div class="table-wrap"><table>
       <thead><tr>
         <th>Type</th><th>Metric</th>
-        <th>D-1</th><th>LMTD</th><th>Last Month</th>
-        <th class="hl">MTD</th><th class="hl">vs LMTD</th>
-        <th>Projected</th><th class="col-sep">L7D</th><th>LL7D</th>
+        <th>Yesterday</th><th class="col-sep">L7D</th><th>LL7D</th>
+        <th class="col-sep hl">MTD</th><th class="hl">vs LMTD</th><th>Projected</th>
+        <th class="col-sep">LMTD</th><th>Last Month</th>
       </tr></thead><tbody>`;
 
   types.forEach(type => {
@@ -609,11 +609,11 @@ function buildPlatformTable(rows, platform, types, title, dotCls, tagCls) {
         const mtd=parseFloat(r.MTD)||0, pct=r.MTD_vs_LMTD, proj=parseFloat(r.PROJECTED)||0;
         const l7d=parseFloat(r.L7D)||0, ll7d=parseFloat(r.LL7D)||0;
         const isAlert = (sub==='SPEND' && d1===0 && !type.isTotal);
+        // Column order: Yesterday | L7D | LL7D | MTD | vs LMTD | Projected | LMTD | Last Month
         html += `<td class="${isAlert?'cell-alert':''}">${fmtVal(d1,sub)}</td>`;
-        html += `<td>${fmtVal(lmtd,sub)}</td><td>${fmtVal(lm,sub)}</td>`;
-        html += `<td><strong>${fmtVal(mtd,sub)}</strong></td><td>${fmtPct(pct)}</td>`;
-        html += `<td>${fmtVal(proj,sub)}</td>`;
         html += `<td class="col-sep">${fmtVal(l7d,sub)}</td><td>${fmtVal(ll7d,sub)}</td>`;
+        html += `<td class="col-sep"><strong>${fmtVal(mtd,sub)}</strong></td><td>${fmtPct(pct)}</td><td>${fmtVal(proj,sub)}</td>`;
+        html += `<td class="col-sep">${fmtVal(lmtd,sub)}</td><td>${fmtVal(lm,sub)}</td>`;
       } else { html += '<td class="zero-val">—</td>'.repeat(8); }
       html += '</tr>';
     });
@@ -881,8 +881,8 @@ function buildAlerts(rows, date, selectedCity) {
     // Biggest CPC bleed in high-spend city = most wasteful
     const cpcBleed = ranked.filter(x=>x.gMTD>150000 && x.gCpcD>25).sort((a,b)=>b.gCpcD-a.gCpcD);
     if (cpcBleed.length>0) {
-      const cb=cpcBleed[0], waste=cb.gMTD*(1-cb.gCPCLM/cb.gCPC);
-      push(waste, waste, `CPC +${cb.gCpcD}% — ${fmtINR(waste)} wasted`,
+      const cb=cpcBleed[0], wAmt=cb.gMTD*(1-cb.gCPCLM/cb.gCPC);
+      push(waste, wAmt, `CPC +${cb.gCpcD}% — ${fmtINR(wAmt)} wasted`,
         `${cb.c} (${cb.share}% of spend) — biggest CPC bleed`,
         `High-spend city with CPC inflation. Same budget reaching ${cb.gCpcD}% fewer users. Fix here moves the needle most.`,
         `Audit ${cb.c} Google bids immediately`, cb.c);
