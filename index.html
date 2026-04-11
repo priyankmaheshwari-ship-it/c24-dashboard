@@ -657,8 +657,30 @@ function buildAlerts(rows, date, selectedCity) {
     citySpendMap[c] = s;
     totalAllSpend += s;
   });
+
+  // Pan India is a channel/catchall — not a real market, exclude from city-tier logic
+  const PAN_INDIA = 'Pan India';
+
+  // City tier: Tier 1 = top 3 cities by spend, Tier 2 = mid, Tier 3 = small
+  const sortedCities = [...cities].filter(c=>c!==PAN_INDIA).sort((a,b)=>citySpendMap[b]-citySpendMap[a]);
+  function cityTier(c) {
+    if (c===PAN_INDIA) return 'channel';
+    const idx = sortedCities.indexOf(c);
+    if (idx<3) return 'T1';
+    if (idx<8) return 'T2';
+    return 'T3';
+  }
+  function cityTierLabel(c) {
+    const t = cityTier(c);
+    if (t==='T1') return '🏙️ Tier 1';
+    if (t==='T2') return '🌆 Tier 2';
+    if (t==='channel') return '📡 Channel';
+    return '🏘️ Tier 3';
+  }
+
   // weight: 1.0 = average city; top city ~2-3x; small city ~0.3x
   function cityWeight(c) {
+    if (c===PAN_INDIA) return 0.5; // Pan India alerts less urgent — not a single market
     if (!totalAllSpend) return 1;
     const share = citySpendMap[c] / totalAllSpend;
     const avgShare = 1 / Math.max(cities.length, 1);
@@ -667,7 +689,9 @@ function buildAlerts(rows, date, selectedCity) {
 
   function push(level, score, impact, title, context, action, city) {
     const w = city ? cityWeight(city) : 1;
-    alerts.push({ level, score: score * w, impact, title, context, action, cityShare: city ? Math.round((citySpendMap[city]||0)/totalAllSpend*100) : null });
+    const share = city ? Math.round((citySpendMap[city]||0)/totalAllSpend*100) : null;
+    const tier = city ? cityTier(city) : null;
+    alerts.push({ level, score: score * w, impact, title, context, action, cityShare: share, cityTier: tier, city });
   }
 
   // ── 2. Per-city, per-platform analysis ──
@@ -973,6 +997,52 @@ function buildAlerts(rows, date, selectedCity) {
         `High-contribution city underperforming. Loss here impacts overall numbers significantly.`,
         `Prioritise ${x.c} — raise budget & review campaigns`, x.c);
     });
+
+    // Cross-city divergence: Tier 1 cities pulling in opposite directions
+    const t1Cities = ranked.filter(x => cityTier(x.c)==='T1' && x.gPct!==null);
+    const t1Growing = t1Cities.filter(x => x.gPct > 15);
+    const t1Declining = t1Cities.filter(x => x.gPct < -15);
+    if (t1Growing.length>0 && t1Declining.length>0) {
+      const grw = t1Growing[0], dec = t1Declining[0];
+      push('warning', citySpendMap[dec.c],
+        `${grw.c} +${Math.round(grw.gPct)}% vs ${dec.c} −${Math.abs(Math.round(dec.gPct))}%`,
+        `Tier 1 divergence — uneven user acquisition`,
+        `Top cities moving in opposite directions. Growth in ${grw.c} may mask structural issues in ${dec.c}. Combined user reach is lower than it appears.`,
+        `Investigate ${dec.c} independently — don't let ${grw.c} mask the gap`, dec.c);
+    }
+
+    // Wasted spend pattern: small city CPC spiking with low volume — not worth the cost
+    const t3Bleeding = ranked.filter(x => cityTier(x.c)==='T3' && x.gMTD>30000 && x.gCpcD>40);
+    if (t3Bleeding.length>0) {
+      const tb = t3Bleeding[0];
+      const waste = tb.gMTD*(1-tb.gCPCLM/tb.gCPC);
+      push('warning', waste,
+        `CPC up ${tb.gCpcD}% in low-volume market`,
+        `Inefficient spend: ${tb.c} (Tier 3, Google)`,
+        `Small market with ${tb.share}% of spend but CPC spiking ${tb.gCpcD}%. Low user volume + high cost = poor ROI. Reallocating to Tier 1/2 cities yields more users.`,
+        `Cap or reduce ${tb.c} budget — redirect to high-volume markets`, tb.c);
+    }
+
+    // Growth concentration risk: >60% of users from 2 cities
+    const top2Share = ranked.slice(0,2).reduce((s,x)=>s+x.share,0);
+    if (top2Share>55 && ranked.length>5) {
+      push('info', totalAllSpend*0.1,
+        `${top2Share}% of spend in 2 cities`,
+        `Growth concentration risk`,
+        `${ranked[0].c} (${ranked[0].share}%) + ${ranked[1].c} (${ranked[1].share}%) dominate user acquisition. Any disruption in these markets hits overall numbers hard.`,
+        `Develop Tier 2 cities as growth buffer`, null);
+    }
+
+    // Untapped markets: Tier 2 city with CPC falling + pacing low = more users available cheaply
+    const untapped = ranked.filter(x => cityTier(x.c)==='T2' && x.gLM>50000 && x.gCpcD<=-10 && x.gProj/x.gLM<0.80);
+    if (untapped.length>0) {
+      const u = untapped[0];
+      push('positive', u.gLM-u.gProj,
+        `CPC −${Math.abs(u.gCpcD)}%, ${Math.round(u.gProj/u.gLM*100)}% paced — users available`,
+        `Untapped growth: ${u.c} (Tier 2)`,
+        `Users in ${u.c} are getting cheaper but budget is holding back reach. ${fmtINR(u.gLM-u.gProj)} of user acquisition left on the table this month.`,
+        `Increase ${u.c} budget — cheapest users available right now`, u.c);
+    }
   }
 
   // ── Sort: level first, then city-weighted score ──
@@ -1008,7 +1078,8 @@ function buildAlerts(rows, date, selectedCity) {
     if (!grp.length) return;
     html += `<div class="section-divider">${sec.label} (${grp.length})</div>`;
     grp.forEach(a => {
-      const shareTag = a.cityShare!==null ? `<span class="alert-impact-tag" style="background:rgba(0,0,0,0.06);color:var(--text-secondary)">${a.cityShare}% of spend</span>` : '';
+      const tierLabel = a.cityTier ? cityTierLabel(a.city) : '';
+      const shareTag = a.cityShare!==null ? `<span class="alert-impact-tag" style="background:rgba(0,0,0,0.06);color:var(--text-secondary)">${tierLabel} · ${a.cityShare}% of spend</span>` : '';
       html += `<div class="alert-item alert-${a.level}">
         <div class="alert-label">${ICONS[a.level]} ${LABELS[a.level]}${a.impact?` <span class="alert-impact-tag ${a.level==='positive'||a.level==='info'?'tag-gain':'tag-loss'}">${a.impact}</span>`:''} ${shareTag}</div>
         <div class="alert-impact">${a.title}</div>
