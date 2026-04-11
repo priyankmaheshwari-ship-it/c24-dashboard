@@ -1011,7 +1011,7 @@ function fmtVal(v,sub) {
   if(v===0) return '<span class="zero-val">0</span>';
   if(sub==='SPEND') return fmtINR(v);
   if(sub==='CLICKS') return Number(v).toLocaleString('en-IN');
-  if(sub==='CPC') return '₹'+Number(v).toFixed(0);
+  if(sub==='CPC') return '₹'+Number(v).toFixed(2);
   return v;
 }
 function fmtPct(v) {
