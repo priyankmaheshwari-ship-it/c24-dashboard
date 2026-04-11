@@ -1049,14 +1049,44 @@ function buildAlerts(rows, date, selectedCity) {
   const ORDER = {urgent:0, critical:1, high:2, warning:3, positive:4, info:5};
   alerts.sort((a,b) => ORDER[a.level]!==ORDER[b.level] ? ORDER[a.level]-ORDER[b.level] : b.score-a.score);
 
+  // ── Cap to 10 most actionable alerts ──
+  // Rules:
+  // 1. Always keep urgent + critical (these are bleeding right now)
+  // 2. Max 2 alerts per city — prevents one bad city flooding the list
+  // 3. Keep at least 1 positive (scale opportunity) if slots remain
+  // 4. Tier 3 city alerts only make the cut if <8 slots used
+  // 5. Hard cap: 10 total
+  const MAX_ALERTS = 10;
+  const cityAlertCount = {};
+  const capped = [];
+  const positives = alerts.filter(a => a.level==='positive');
+  const nonPositives = alerts.filter(a => a.level!=='positive');
+
+  for (const a of nonPositives) {
+    if (capped.length >= MAX_ALERTS) break;
+    const tier = a.city ? cityTier(a.city) : null;
+    // Tier 3 alerts only if we have room (fewer than 8 filled)
+    if (tier==='T3' && capped.length >= 8) continue;
+    // Max 2 per city
+    const key = a.city || '__global__';
+    if ((cityAlertCount[key]||0) >= 2) continue;
+    cityAlertCount[key] = (cityAlertCount[key]||0) + 1;
+    capped.push(a);
+  }
+
+  // Add best scale opportunity if room
+  if (capped.length < MAX_ALERTS && positives.length > 0) {
+    capped.push(positives[0]);
+  }
+
   const body  = document.getElementById('alerts-body');
   const count = document.getElementById('alert-count');
-  const urgN  = alerts.filter(a=>a.level==='urgent').length;
-  const critN = alerts.filter(a=>a.level==='critical'||a.level==='urgent').length;
-  count.textContent = critN || alerts.length;
-  count.style.background = urgN>0?'var(--red)':critN>0?'#E53935':alerts.length?'var(--c24-primary)':'var(--green)';
+  const urgN  = capped.filter(a=>a.level==='urgent').length;
+  const critN = capped.filter(a=>a.level==='critical'||a.level==='urgent').length;
+  count.textContent = critN || capped.length;
+  count.style.background = urgN>0?'var(--red)':critN>0?'#E53935':capped.length?'var(--c24-primary)':'var(--green)';
 
-  if (!alerts.length) {
+  if (!capped.length) {
     body.innerHTML = `<div class="no-alerts">All metrics look healthy<br><small style="color:var(--text-tertiary)">${isAll?'All cities':selectedCity} · ${formatDate(date)}</small></div>`;
     return;
   }
@@ -1072,9 +1102,13 @@ function buildAlerts(rows, date, selectedCity) {
     {key:'info',    label:'Strategic Insights'},
   ];
 
-  let html = '';
+  const totalRaw = alerts.length;
+  let html = capped.length < totalRaw
+    ? `<div style="font-size:10px;color:var(--text-tertiary);padding:4px 4px 8px;text-align:center">Top ${capped.length} of ${totalRaw} signals · ranked by business impact</div>`
+    : '';
+
   sections.forEach(sec => {
-    const grp = alerts.filter(a => a.level===sec.key);
+    const grp = capped.filter(a => a.level===sec.key);
     if (!grp.length) return;
     html += `<div class="section-divider">${sec.label} (${grp.length})</div>`;
     grp.forEach(a => {
