@@ -645,9 +645,8 @@ function buildAlerts(rows, date, selectedCity) {
   const cities = [...new Set(rows.map(r => r.city))];
   const GOOGLE_TYPES_SUB = [['Google - PMAX','PMAX'],['Google - UACi','UAC Install'],['Google - UACe','UAC Engage'],['Google - Search','Search']];
   const META_TYPES_SUB   = [['Facebook - Catalog','Catalog'],['Facebook - Conversion','Conversion']];
-  const alerts = [];
 
-  // ── 1. Compute city contribution weights (share of total MTD spend) ──
+  // ── City weights ──────────────────────────────────────────────────
   const citySpendMap = {};
   let totalAllSpend = 0;
   cities.forEach(c => {
@@ -657,53 +656,50 @@ function buildAlerts(rows, date, selectedCity) {
     citySpendMap[c] = s;
     totalAllSpend += s;
   });
-
-  // Pan India is a channel/catchall — not a real market, exclude from city-tier logic
   const PAN_INDIA = 'Pan India';
-
-  // City tier: Tier 1 = top 3 cities by spend, Tier 2 = mid, Tier 3 = small
   const sortedCities = [...cities].filter(c=>c!==PAN_INDIA).sort((a,b)=>citySpendMap[b]-citySpendMap[a]);
+
   function cityTier(c) {
     if (c===PAN_INDIA) return 'channel';
     const idx = sortedCities.indexOf(c);
-    if (idx<3) return 'T1';
-    if (idx<8) return 'T2';
-    return 'T3';
+    if (idx<3) return 'T1'; if (idx<8) return 'T2'; return 'T3';
   }
   function cityTierLabel(c) {
-    const t = cityTier(c);
-    if (t==='T1') return '🏙️ Tier 1';
-    if (t==='T2') return '🌆 Tier 2';
-    if (t==='channel') return '📡 Channel';
-    return '🏘️ Tier 3';
+    const t=cityTier(c);
+    if(t==='T1') return '🏙️ Tier 1'; if(t==='T2') return '🌆 Tier 2';
+    if(t==='channel') return '📡 Channel'; return '🏘️ Tier 3';
   }
-
-  // weight: 1.0 = average city; top city ~2-3x; small city ~0.3x
+  // City weight: scales by business contribution. Tier 3 gets 0.3x — their issues rarely warrant top-10
   function cityWeight(c) {
-    if (c===PAN_INDIA) return 0.5; // Pan India alerts less urgent — not a single market
-    if (!totalAllSpend) return 1;
-    const share = citySpendMap[c] / totalAllSpend;
-    const avgShare = 1 / Math.max(cities.length, 1);
-    return Math.max(0.3, Math.min(3.0, share / avgShare));
+    if (c===PAN_INDIA) return 0.4;
+    const share = (citySpendMap[c]||0) / totalAllSpend;
+    const avg   = 1 / Math.max(sortedCities.length, 1);
+    return Math.max(0.3, Math.min(3.0, share / avg));
   }
 
-  function push(level, score, impact, title, context, action, city) {
-    const w = city ? cityWeight(city) : 1;
+  // ── Three buckets: blockers, waste, growth levers ────────────────
+  // Each alert carries a raw ₹ impact before city weighting.
+  // Scoring = ₹ impact × city weight → ensures big city problems outrank small city noise.
+  const blockers = [];   // paused, severe drop — act or lose users today
+  const waste    = [];   // CPC inflation, spend ≠ clicks — money going out, users not coming in
+  const growth   = [];   // budget-capped with healthy CPC — more money = more users guaranteed
+
+  function push(bucket, rupeeImpact, impact, title, context, action, city) {
+    const w     = city ? cityWeight(city) : 1;
     const share = city ? Math.round((citySpendMap[city]||0)/totalAllSpend*100) : null;
-    const tier = city ? cityTier(city) : null;
-    alerts.push({ level, score: score * w, impact, title, context, action, cityShare: share, cityTier: tier, city });
+    const tier  = city ? cityTier(city) : null;
+    bucket.push({ rupeeImpact, score: rupeeImpact * w, impact, title, context, action,
+                  cityShare: share, cityTier: tier, city });
   }
 
-  // ── 2. Per-city, per-platform analysis ──
+  // ── Per-city, per-platform signal detection ───────────────────────
   cities.forEach(c => {
     const cr  = rows.filter(r => r.city === c);
-    const cw  = cityWeight(c);
     const loc = isAll ? `${c} · ` : '';
 
     ['Google','Meta'].forEach(platform => {
-      const totalKey = platform==='Google' ? 'Google - Total' : 'Facebook - Total';
-      const subTypes = platform==='Google' ? GOOGLE_TYPES_SUB : META_TYPES_SUB;
-
+      const totalKey  = platform==='Google' ? 'Google - Total' : 'Facebook - Total';
+      const subTypes  = platform==='Google' ? GOOGLE_TYPES_SUB : META_TYPES_SUB;
       const spendD1   = getAggMetric(cr,platform,totalKey,'SPEND','D1');
       const spendMTD  = getAggMetric(cr,platform,totalKey,'SPEND','MTD');
       const spendLMTD = getAggMetric(cr,platform,totalKey,'SPEND','LMTD');
@@ -712,127 +708,99 @@ function buildAlerts(rows, date, selectedCity) {
       const spendPct  = getAggPct(cr,platform,totalKey,'SPEND');
       const clicksMTD = getAggMetric(cr,platform,totalKey,'CLICKS','MTD');
       const clicksLMTD= getAggMetric(cr,platform,totalKey,'CLICKS','LMTD');
-      const clicksL7D = getAggMetric(cr,platform,totalKey,'CLICKS','L7D');
-      const clicksLL7D= getAggMetric(cr,platform,totalKey,'CLICKS','LL7D');
       const spendL7D  = getAggMetric(cr,platform,totalKey,'SPEND','L7D');
       const spendLL7D = getAggMetric(cr,platform,totalKey,'SPEND','LL7D');
+      const clicksL7D = getAggMetric(cr,platform,totalKey,'CLICKS','L7D');
+      const clicksLL7D= getAggMetric(cr,platform,totalKey,'CLICKS','LL7D');
       const cpcMTD    = getAggMetric(cr,platform,totalKey,'CPC','MTD');
       const cpcLMTD   = getAggMetric(cr,platform,totalKey,'CPC','LMTD');
-
-      const clicksPct  = clicksLMTD>0 ? Math.round((clicksMTD-clicksLMTD)/clicksLMTD*100) : null;
-      const cpcDelta   = cpcLMTD>0&&cpcMTD>0 ? Math.round((cpcMTD-cpcLMTD)/cpcLMTD*100) : 0;
-      const pacingPct  = spendLM>0 ? spendProj/spendLM*100 : null;
-      const shortfall  = spendLM>0 ? spendLM-spendProj : 0;
-      const extraCost  = cpcLMTD>0&&cpcMTD>0 ? spendMTD*(1-cpcLMTD/cpcMTD) : 0;
-      const l7dMom     = spendLL7D>0 ? Math.round((spendL7D-spendLL7D)/spendLL7D*100) : null;
-      const clickMom   = clicksLL7D>0 ? Math.round((clicksL7D-clicksLL7D)/clicksLL7D*100) : null;
-      // estimated users lost/gained: clicks difference over period
-      const usersLostMTD = clicksLMTD>0&&clicksMTD<clicksLMTD ? Math.round(clicksLMTD-clicksMTD) : 0;
-      const usersGainMTD = clicksLMTD>0&&clicksMTD>clicksLMTD ? Math.round(clicksMTD-clicksLMTD) : 0;
-
+      const clicksPct = clicksLMTD>0 ? Math.round((clicksMTD-clicksLMTD)/clicksLMTD*100) : null;
+      const cpcDelta  = cpcLMTD>0&&cpcMTD>0 ? Math.round((cpcMTD-cpcLMTD)/cpcLMTD*100) : 0;
+      const pacingPct = spendLM>0 ? spendProj/spendLM*100 : null;
+      const extraCost = cpcLMTD>0&&cpcMTD>0 ? spendMTD*(1-cpcLMTD/cpcMTD) : 0;
+      const usersLost = clicksLMTD>0&&clicksMTD<clicksLMTD ? Math.round(clicksLMTD-clicksMTD) : 0;
+      const l7dMom    = spendLL7D>0 ? Math.round((spendL7D-spendLL7D)/spendLL7D*100) : null;
+      const clickMom  = clicksLL7D>0 ? Math.round((clicksL7D-clicksLL7D)/clicksLL7D*100) : null;
       if (spendMTD===0) return;
 
-      // ── BLOCKER: Campaigns fully paused ──
-      if (spendD1===0) push('urgent', spendMTD,
-        fmtINR(spendMTD)+' at risk',
-        `${loc}${platform} campaigns paused`,
-        `Zero spend yesterday — zero users entering funnel. Losing ~${fmtINR(spendMTD/9)}/day.`,
-        `Check campaign status & billing`, c);
+      // ── BLOCKERS ──
+      // Paused: zero spend yesterday = full funnel gap
+      if (spendD1===0)
+        push(blockers, spendMTD, fmtINR(spendMTD)+' at risk',
+          `${loc}${platform} campaigns paused`,
+          `Zero spend yesterday — funnel completely dark. Losing ~${fmtINR(spendMTD/9)}/day based on MTD pace.`,
+          `Check campaign status & billing immediately`, c);
 
-      // ── BLOCKER: Severe spend drop = lost users at scale ──
-      if (spendPct!==null && spendPct<-30) {
+      // Severe spend drop: users falling sharply
+      if (spendPct!==null && spendPct<-25) {
         const lost = spendLMTD - spendMTD;
-        push('critical', lost,
-          fmtINR(lost)+' under-delivered',
-          `${loc}${platform} spend −${Math.abs(Math.round(spendPct))}% — users dropping`,
-          `~${usersLostMTD.toLocaleString('en-IN')} fewer clicks MTD. ${fmtINR(spendMTD)} vs ${fmtINR(spendLMTD)} LMTD. Projected gap: ${fmtINR(Math.max(0,spendLM-spendProj))}.`,
+        push(blockers, lost, fmtINR(lost)+' under-delivered',
+          `${loc}${platform} −${Math.abs(Math.round(spendPct))}% spend — ${usersLost.toLocaleString('en-IN')} fewer users`,
+          `MTD ${fmtINR(spendMTD)} vs ${fmtINR(spendLMTD)} LMTD. Projected shortfall: ${fmtINR(Math.max(0,spendLM-spendProj))}.`,
           `Raise daily budget cap`, c);
       }
 
-      // ── BLOCKER: Moderate spend drop ──
-      if (spendPct!==null && spendPct>=-30 && spendPct<-15) {
+      // Moderate spend drop
+      if (spendPct!==null && spendPct>=-25 && spendPct<-12) {
         const lost = spendLMTD - spendMTD;
-        push('high', lost,
-          fmtINR(lost)+' below pace',
-          `${loc}${platform} spend −${Math.abs(Math.round(spendPct))}% — growth slowing`,
-          `Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}. ~${usersLostMTD.toLocaleString('en-IN')} fewer users in funnel.`,
+        push(blockers, lost*0.6, fmtINR(lost)+' below pace',
+          `${loc}${platform} −${Math.abs(Math.round(spendPct))}% — growth decelerating`,
+          `Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}. ~${usersLost.toLocaleString('en-IN')} fewer users in funnel.`,
           `Review budget & bid caps`, c);
       }
 
-      // ── WASTED SPEND: CPC spike — paying more per user ──
-      if (cpcDelta>40) push('critical', extraCost,
-        fmtINR(extraCost)+' wasted on CPC inflation',
-        `${loc}${platform} CPC up ${cpcDelta}% — fewer users per rupee`,
-        `₹${cpcMTD.toFixed(0)} vs ₹${cpcLMTD.toFixed(0)} LMTD. Same budget now brings ${cpcDelta}% fewer users.`,
-        `Audit bids, match types & search terms`, c);
+      // Losing momentum last 7 days (early warning before it shows in MTD)
+      if (l7dMom!==null && l7dMom<-20 && clickMom!==null && clickMom<-15)
+        push(blockers, (spendLL7D-spendL7D)*0.5, `${Math.abs(l7dMom)}% spend drop this week`,
+          `${loc}${platform} — momentum dropping fast`,
+          `L7D ${fmtINR(spendL7D)} vs prior 7 ${fmtINR(spendLL7D)}. User volume falling. Will compound into MTD if not fixed.`,
+          `Diagnose: budget exhaustion or audience fatigue?`, c);
 
-      if (cpcDelta>20 && cpcDelta<=40) push('high', extraCost,
-        fmtINR(extraCost)+' efficiency drag',
-        `${loc}${platform} CPC up ${cpcDelta}% — user acquisition costlier`,
-        `₹${cpcMTD.toFixed(0)} MTD vs ₹${cpcLMTD.toFixed(0)} LMTD. ${extraCost>0?fmtINR(extraCost)+' overspent for same users.':''}`,
-        `Lower target CPA / review bid strategy`, c);
+      // ── WASTED SPEND ──
+      // CPC spike: same budget, fewer users
+      if (cpcDelta>30)
+        push(waste, extraCost, fmtINR(extraCost)+' overspent per user',
+          `${loc}${platform} CPC +${cpcDelta}% — paying more per user`,
+          `₹${cpcMTD.toFixed(0)} vs ₹${cpcLMTD.toFixed(0)} LMTD. ${fmtINR(extraCost)} spent on CPC inflation, not user growth.`,
+          `Audit bids, match types & search terms`, c);
 
-      // ── BLOCKED GROWTH: Budget cap stopping cheap clicks ──
-      // Pattern: pacing low + CPC flat or falling = demand exists, budget is the cap
-      if (pacingPct!==null && pacingPct<75 && spendLM>0 && cpcDelta<=5) push('high', shortfall,
-        fmtINR(shortfall)+' growth blocked by budget cap',
-        `${loc}${platform} pacing ${Math.round(pacingPct)}% — CPC healthy, budget is the ceiling`,
-        `CPC ${cpcDelta<=0?'falling':'stable'} (₹${cpcMTD.toFixed(0)}), demand exists. Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}. Unlocking budget = more users at current efficiency.`,
-        `Increase daily budget cap now`, c);
-
-      // Pacing low + CPC also rising = demand + cost problem
-      if (pacingPct!==null && pacingPct<75 && spendLM>0 && cpcDelta>5) push('high', shortfall,
-        fmtINR(shortfall)+' shortfall',
-        `${loc}${platform} pacing ${Math.round(pacingPct)}% + CPC rising`,
-        `Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}. Both budget and CPC need attention.`,
-        `Increase budget & optimise bids`, c);
-
-      // ── WASTED SPEND: Spend up but clicks flat/down ──
-      // Paying more money but not acquiring more users
-      if (spendPct!==null && clicksPct!==null && spendPct>10 && clicksPct<5) {
-        const wastedEst = spendMTD * (spendPct - Math.max(0,clicksPct)) / 100;
-        push('warning', wastedEst,
-          `Spend +${Math.round(spendPct)}% but clicks +${clicksPct}%`,
-          `${loc}${platform} — spend growing faster than users`,
-          `Budget scaling but not translating to more users. ~${fmtINR(wastedEst)} incremental spend with no click gain.`,
-          `Check bid strategy & audience saturation`, c);
+      // Spend up, clicks flat: budget scaling but not reaching more users
+      if (spendPct!==null && clicksPct!==null && spendPct>15 && clicksPct<3 && cpcDelta>15) {
+        const wastedEst = extraCost;
+        if (wastedEst>10000)
+          push(waste, wastedEst, fmtINR(wastedEst)+' spend not converting to users',
+            `${loc}${platform} — budget up ${Math.round(spendPct)}%, users barely moving`,
+            `Spend +${Math.round(spendPct)}% but clicks +${clicksPct}%. CPC inflating. More spend ≠ more users right now.`,
+            `Fix CPC before scaling further`, c);
       }
 
-      // ── WASTED SPEND: CTR degrading (ad fatigue) ──
-      if (spendPct!==null && clicksPct!==null && clicksPct<-20 && spendPct>-10) push('warning', spendMTD*0.15,
-        `${Math.abs(clicksPct)}% fewer users for same spend`,
-        `${loc}${platform} CTR degrading — ad fatigue`,
-        `Clicks ${(clicksMTD/1000).toFixed(1)}K vs ${(clicksLMTD/1000).toFixed(1)}K LMTD. Spending the same, reaching fewer users.`,
-        `Refresh creatives & rotate ad copy`, c);
+      // Ad fatigue: CTR declining, spend unchanged
+      if (clicksPct!==null && clicksPct<-20 && spendPct!==null && spendPct>-10) {
+        const wastedEst = spendMTD * Math.abs(clicksPct) / 100;
+        push(waste, wastedEst, `${Math.abs(clicksPct)}% fewer users, spend unchanged`,
+          `${loc}${platform} — ad fatigue, creatives stale`,
+          `Clicks ${(clicksMTD/1000).toFixed(1)}K vs ${(clicksLMTD/1000).toFixed(1)}K LMTD. Same spend, fewer users entering funnel.`,
+          `Refresh creatives & rotate ad copy`, c);
+      }
 
-      // ── MOMENTUM: L7D vs LL7D trend ──
-      if (l7dMom!==null && l7dMom>=20 && clickMom!==null && clickMom>=15) push('positive', spendL7D,
-        `+${l7dMom}% spend, +${clickMom}% users (L7D)`,
-        `${loc}${platform} — momentum building 🔥`,
-        `Last 7 days: ${fmtINR(spendL7D)} vs prior 7: ${fmtINR(spendLL7D)}. User volume accelerating.`,
-        `Scale budget 15–25% to ride momentum`, c);
+      // ── GROWTH LEVERS ──
+      // Budget-capped: pacing low + CPC healthy = demand exists, only budget is blocking users
+      if (pacingPct!==null && pacingPct<80 && spendLM>0 && cpcDelta<=8) {
+        const unlockable = spendLM - spendProj;
+        push(growth, unlockable, fmtINR(unlockable)+' users blocked by budget cap',
+          `${loc}${platform} pacing ${Math.round(pacingPct)}% — CPC ${cpcDelta<=0?'falling':'healthy'}, demand exists`,
+          `Users are available at ₹${cpcMTD.toFixed(0)}/click but budget cap is the ceiling. Pump in more → more users, same cost.`,
+          `Increase daily budget cap — immediate user gain`, c);
+      }
 
-      if (l7dMom!==null && l7dMom<-20 && clickMom!==null && clickMom<-15) push('warning', spendLL7D-spendL7D,
-        `${Math.abs(l7dMom)}% spend drop in last 7 days`,
-        `${loc}${platform} — momentum losing`,
-        `L7D ${fmtINR(spendL7D)} vs LL7D ${fmtINR(spendLL7D)}. User volume decelerating — investigate before it compounds.`,
-        `Diagnose: budget exhaustion or audience fatigue?`, c);
+      // Momentum building: L7D accelerating — best time to pour more in
+      if (l7dMom!==null && l7dMom>=20 && clickMom!==null && clickMom>=15)
+        push(growth, spendL7D*0.3, `+${l7dMom}% spend, +${clickMom}% users (L7D)`,
+          `${loc}${platform} — momentum window open 🔥`,
+          `Last 7 days accelerating vs prior 7. User volume up, CPC stable. Algorithms in learning — now is the time to scale.`,
+          `Increase budget 20–30% to ride momentum`, c);
 
-      // ── GROWTH OPPORTUNITY: Scaling efficiently ──
-      if (spendPct!==null && spendPct>20 && cpcDelta<=5 && clicksPct!==null && clicksPct>15) push('positive', spendMTD,
-        `+${Math.round(spendPct)}% spend, +${clicksPct}% users, CPC ${cpcDelta<=0?'down':'stable'}`,
-        `${loc}${platform} — high-efficiency growth`,
-        `${fmtINR(spendMTD)} MTD vs ${fmtINR(spendLMTD)} LMTD. More users at same/lower cost. Best time to scale.`,
-        `Scale budget 20–30% immediately`, c);
-
-      // ── OVERPACING: Risk of budget exhaustion before month end ──
-      if (pacingPct!==null && pacingPct>130 && spendLM>0) push('warning', spendProj-spendLM,
-        fmtINR(spendProj-spendLM)+' above last month pace',
-        `${loc}${platform} overpacing at ${Math.round(pacingPct)}%`,
-        `Projected ${fmtINR(spendProj)} vs LM ${fmtINR(spendLM)}. Risk of budget exhaustion mid-month, leaving users unreached in second half.`,
-        `Review monthly budget cap & pacing settings`, c);
-
-      // ── CAMPAIGN TYPE drill-down (single city view) ──
+      // ── CAMPAIGN TYPE drill-down (single city view only) ──
       if (!isAll) {
         subTypes.forEach(([typeKey,typeLabel]) => {
           const tRows  = cr.filter(r => r.platform===platform && r.campaign_type===typeKey);
@@ -842,242 +810,149 @@ function buildAlerts(rows, date, selectedCity) {
           if (!tSpend) return;
           const tMTD  = parseFloat(tSpend.MTD)||0;
           const tD1   = parseFloat(tSpend.D1)||0;
-          const tLMTD = parseFloat(tSpend.LMTD)||0;
           const tLM   = parseFloat(tSpend.LM)||0;
           const tProj = parseFloat(tSpend.PROJECTED)||0;
-          const tPct  = tSpend.MTD_vs_LMTD;
           const tCPCmtd = tCPC ? parseFloat(tCPC.MTD)||0 : 0;
           const tCPClm  = tCPC ? parseFloat(tCPC.LMTD)||0 : 0;
           const tCkMTD  = tClicks ? parseFloat(tClicks.MTD)||0 : 0;
           const tCkLMTD = tClicks ? parseFloat(tClicks.LMTD)||0 : 0;
-          const tCkPct  = tCkLMTD>0 ? Math.round((tCkMTD-tCkLMTD)/tCkLMTD*100) : null;
           const tCpcD   = tCPClm>0&&tCPCmtd>0 ? Math.round((tCPCmtd-tCPClm)/tCPClm*100) : 0;
-          const tUsersLost = tCkLMTD>0&&tCkMTD<tCkLMTD ? Math.round(tCkLMTD-tCkMTD) : 0;
           if (tMTD===0) return;
-
-          // Funnel gap: campaign type went dark
-          if (tD1===0) push('urgent', tMTD,
-            fmtINR(tMTD)+' funnel gap',
-            `${platform} ${typeLabel} went dark yesterday`,
-            `Zero spend = zero users from this channel. Campaign type paused.`,
-            `Unpause / check billing`, c);
-
-          // CPC spike on campaign type
-          if (tCpcD>30) {
+          if (tD1===0)
+            push(blockers, tMTD, fmtINR(tMTD)+' funnel gap',
+              `${platform} ${typeLabel} went dark yesterday`,
+              `Zero spend = zero users from this channel. Campaign type fully paused.`,
+              `Unpause / check billing`, c);
+          if (tCpcD>35) {
             const w = tMTD*(1-tCPClm/tCPCmtd);
-            push('high', w,
-              fmtINR(w)+' wasted',
-              `${platform} ${typeLabel}: CPC up ${tCpcD}%`,
-              `₹${tCPCmtd.toFixed(0)} vs ₹${tCPClm.toFixed(0)} LMTD. Each user costs ${tCpcD}% more.`,
+            push(waste, w, fmtINR(w)+' efficiency loss',
+              `${platform} ${typeLabel}: CPC +${tCpcD}%`,
+              `₹${tCPCmtd.toFixed(0)} vs ₹${tCPClm.toFixed(0)} LMTD. Each user ${tCpcD}% costlier.`,
               `Review bids & audience targeting`, c);
           }
-
-          // Budget-capped growth at type level
-          if (tLM>0 && tProj>0 && tProj/tLM<0.70 && tCpcD<=5) push('high', tLM-tProj,
-            fmtINR(tLM-tProj)+' growth blocked',
-            `${platform} ${typeLabel}: pacing ${Math.round(tProj/tLM*100)}%, CPC healthy`,
-            `Budget cap limiting users. Projected ${fmtINR(tProj)} vs LM ${fmtINR(tLM)}.`,
-            `Increase ${typeLabel} budget`, c);
-
-          // Ad fatigue at type level
-          if (tPct!==null && tCkPct!==null && tCkPct<-25 && tPct>-10) push('warning', tMTD*0.2,
-            `${Math.abs(tCkPct)}% fewer users, spend unchanged`,
-            `${platform} ${typeLabel}: ad fatigue setting in`,
-            `${tUsersLost.toLocaleString('en-IN')} users lost MTD. Spending same budget for fewer clicks.`,
-            `Refresh creatives urgently`, c);
-
-          // Strong growth opportunity at type level
-          if (tPct!==null && tPct>30 && tCpcD<=5) push('positive', tMTD,
-            `+${Math.round(tPct)}% users, CPC ${tCpcD<=0?'down':'stable'}`,
-            `${platform} ${typeLabel}: efficient user growth`,
-            `${fmtINR(tMTD)} MTD vs ${fmtINR(tLMTD)} LMTD. More users at same/lower cost.`,
-            `Double down on budget here`, c);
+          if (tLM>0 && tProj>0 && tProj/tLM<0.70 && tCpcD<=8)
+            push(growth, tLM-tProj, fmtINR(tLM-tProj)+' users left on table',
+              `${platform} ${typeLabel}: pacing ${Math.round(tProj/tLM*100)}%, CPC healthy`,
+              `Demand exists at ₹${tCPCmtd.toFixed(0)}/click. Budget cap limiting user volume.`,
+              `Increase ${typeLabel} budget`, c);
         });
+
+        // Cross-platform divergence
+        const gPct = getAggPct(cr,'Google','Google - Total','SPEND');
+        const mPct = getAggPct(cr,'Meta','Facebook - Total','SPEND');
+        const mSpend = getAggMetric(cr,'Meta','Facebook - Total','SPEND','MTD');
+        const gSpend = getAggMetric(cr,'Google','Google - Total','SPEND','MTD');
+        if (gPct!==null && mPct!==null && gPct>20 && mPct<-20)
+          push(waste, mSpend*0.25, `Google +${Math.round(gPct)}% vs Meta −${Math.abs(Math.round(mPct))}%`,
+            `Platform divergence — Meta users being missed`,
+            `Google growing but Meta shrinking. Meta reaches users Google doesn't — funnel has a gap.`,
+            `Rebalance Meta budget`, c);
+        if (gPct!==null && mPct!==null && mPct>20 && gPct<-20)
+          push(waste, gSpend*0.25, `Meta +${Math.round(mPct)}% vs Google −${Math.abs(Math.round(gPct))}%`,
+            `Platform divergence — high-intent Google users missed`,
+            `Meta growing but Google declining. Search intent users not being captured.`,
+            `Fix Google budget / bids`, c);
       }
     });
-
-    // ── 3. Cross-platform pattern: platform divergence ──
-    if (!isAll) {
-      const gSpend = getAggMetric(cr,'Google','Google - Total','SPEND','MTD');
-      const mSpend = getAggMetric(cr,'Meta','Facebook - Total','SPEND','MTD');
-      const gPct   = getAggPct(cr,'Google','Google - Total','SPEND');
-      const mPct   = getAggPct(cr,'Meta','Facebook - Total','SPEND');
-      const gClk   = getAggMetric(cr,'Google','Google - Total','CLICKS','MTD');
-      const mClk   = getAggMetric(cr,'Meta','Facebook - Total','CLICKS','MTD');
-      const gClkLM = getAggMetric(cr,'Google','Google - Total','CLICKS','LMTD');
-      const mClkLM = getAggMetric(cr,'Meta','Facebook - Total','CLICKS','LMTD');
-      // One platform scaling, other declining = user reach imbalance
-      if (gPct!==null && mPct!==null && gPct>20 && mPct<-20) push('warning', mSpend*0.3,
-        `Google +${Math.round(gPct)}% vs Meta −${Math.abs(Math.round(mPct))}%`,
-        `Platform divergence — Meta users being missed`,
-        `Google growing but Meta shrinking. Different user segments — risk of lopsided funnel reach.`,
-        `Rebalance Meta budget to maintain cross-platform reach`, c);
-
-      if (gPct!==null && mPct!==null && mPct>20 && gPct<-20) push('warning', gSpend*0.3,
-        `Meta +${Math.round(mPct)}% vs Google −${Math.abs(Math.round(gPct))}%`,
-        `Platform divergence — Google users being missed`,
-        `Meta growing but Google declining. High-intent search users not being captured.`,
-        `Fix Google budget / bids to recapture intent-driven users`, c);
-    }
   });
 
-  // ── 4. All-cities view: cross-city patterns ──
+  // ── All-cities: cross-city strategic patterns ─────────────────────
   if (isAll) {
     const ranked = cities.map(c => {
-      const cr = rows.filter(r => r.city===c);
+      const cr = rows.filter(r=>r.city===c);
+      const gCPC  = getAggMetric(cr,'Google','Google - Total','CPC','MTD');
+      const gCPCLM= getAggMetric(cr,'Google','Google - Total','CPC','LMTD');
       return {
-        c,
-        total:   citySpendMap[c],
-        share:   totalAllSpend>0 ? Math.round(citySpendMap[c]/totalAllSpend*100) : 0,
-        gMTD:    getAggMetric(cr,'Google','Google - Total','SPEND','MTD'),
-        mMTD:    getAggMetric(cr,'Meta','Facebook - Total','SPEND','MTD'),
-        gPct:    getAggPct(cr,'Google','Google - Total','SPEND'),
-        mPct:    getAggPct(cr,'Meta','Facebook - Total','SPEND'),
-        gCPC:    getAggMetric(cr,'Google','Google - Total','CPC','MTD'),
-        gCPCLM:  getAggMetric(cr,'Google','Google - Total','CPC','LMTD'),
-        gClk:    getAggMetric(cr,'Google','Google - Total','CLICKS','MTD'),
-        gClkLM:  getAggMetric(cr,'Google','Google - Total','CLICKS','LMTD'),
-        gProj:   getAggMetric(cr,'Google','Google - Total','SPEND','PROJECTED'),
-        gLM:     getAggMetric(cr,'Google','Google - Total','SPEND','LM'),
-        gCpcD:   0,
+        c, total: citySpendMap[c],
+        share: totalAllSpend>0 ? Math.round(citySpendMap[c]/totalAllSpend*100) : 0,
+        gMTD:  getAggMetric(cr,'Google','Google - Total','SPEND','MTD'),
+        mMTD:  getAggMetric(cr,'Meta','Facebook - Total','SPEND','MTD'),
+        gPct:  getAggPct(cr,'Google','Google - Total','SPEND'),
+        mPct:  getAggPct(cr,'Meta','Facebook - Total','SPEND'),
+        gCPC, gCPCLM,
+        gClk:  getAggMetric(cr,'Google','Google - Total','CLICKS','MTD'),
+        gClkLM:getAggMetric(cr,'Google','Google - Total','CLICKS','LMTD'),
+        gProj: getAggMetric(cr,'Google','Google - Total','SPEND','PROJECTED'),
+        gLM:   getAggMetric(cr,'Google','Google - Total','SPEND','LM'),
+        gCpcD: gCPCLM>0&&gCPC>0 ? Math.round((gCPC-gCPCLM)/gCPCLM*100) : 0,
       };
-    }).filter(x => x.total>0).sort((a,b) => b.total-a.total);
-    ranked.forEach(x => { x.gCpcD = x.gCPCLM>0&&x.gCPC>0 ? Math.round((x.gCPC-x.gCPCLM)/x.gCPCLM*100) : 0; });
+    }).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
 
-    // Top city context
-    if (ranked.length>0) {
-      const t = ranked[0];
-      push('info', t.total,
-        `${t.share}% of total spend · G: ${fmtINR(t.gMTD)} · M: ${fmtINR(t.mMTD)}`,
-        `#1 City: ${t.c}`,
-        `Drives ${t.share}% of all ad spend. Google ${t.gPct!==null?(t.gPct>0?'+':'')+Math.round(t.gPct)+'%':'—'} vs LMTD.`,
-        `Monitor closely — any issue here has outsized impact`, t.c);
-    }
-
-    // Cities with cheap CPC + low pacing = budget-capped growth markets
-    const cheapUnderspend = ranked.filter(x => x.gLM>100000 && x.gCpcD<=-5 && x.gProj/x.gLM<0.85);
-    if (cheapUnderspend.length>0) {
-      const cu = cheapUnderspend[0];
-      push('positive', cu.gLM-cu.gProj,
-        `CPC down ${Math.abs(cu.gCpcD)}%, pacing ${Math.round(cu.gProj/cu.gLM*100)}%`,
-        `Budget-capped growth: ${cu.c} (Google)`,
-        `Users are getting cheaper but budget is holding back reach. ${fmtINR(cu.gLM-cu.gProj)} left on the table.`,
-        `Increase ${cu.c} Google budget — best ROI market right now`, cu.c);
-    }
-
-    // Cities with high CPC growth = wasted spend markets
-    const cpcBleed = ranked.filter(x => x.gMTD>200000 && x.gCpcD>30).sort((a,b)=>b.gCpcD-a.gCpcD);
+    // Biggest CPC bleed in high-spend city = most wasteful
+    const cpcBleed = ranked.filter(x=>x.gMTD>150000 && x.gCpcD>25).sort((a,b)=>b.gCpcD-a.gCpcD);
     if (cpcBleed.length>0) {
-      const cb = cpcBleed[0];
-      const waste = cb.gMTD*(1-cb.gCPCLM/cb.gCPC);
-      push('critical', waste,
-        `CPC up ${cb.gCpcD}% — ${fmtINR(waste)} wasted`,
-        `Biggest CPC bleed: ${cb.c} (Google)`,
-        `High-spend city with ${cb.gCpcD}% CPC spike. Acquiring fewer users per rupee at scale.`,
-        `Audit ${cb.c} bids immediately`, cb.c);
+      const cb=cpcBleed[0], waste=cb.gMTD*(1-cb.gCPCLM/cb.gCPC);
+      push(waste, waste, `CPC +${cb.gCpcD}% — ${fmtINR(waste)} wasted`,
+        `${cb.c} (${cb.share}% of spend) — biggest CPC bleed`,
+        `High-spend city with CPC inflation. Same budget reaching ${cb.gCpcD}% fewer users. Fix here moves the needle most.`,
+        `Audit ${cb.c} Google bids immediately`, cb.c);
     }
 
-    // Cities with strong momentum = scale signals
-    const scaling = ranked.filter(x => x.gPct!==null && x.gPct>25 && x.gCpcD<=5 && x.gClkLM>0 && x.gClk>x.gClkLM);
-    if (scaling.length>0) {
-      const sc = scaling[0];
-      push('positive', sc.gMTD,
-        `+${Math.round(sc.gPct)}% spend, users growing, CPC stable`,
-        `Scale signal: ${sc.c} (Google)`,
-        `${sc.share}% of total spend. Efficient growth — more users at same cost. Best candidate for budget increase.`,
-        `Scale ${sc.c} budget 20–30%`, sc.c);
+    // Best budget-unlock opportunity: high-contribution city, CPC healthy, underpacing
+    const unlockable = ranked.filter(x=>cityTier(x.c)!=='T3' && x.gLM>100000 && x.gCpcD<=8 && x.gProj/x.gLM<0.82)
+      .sort((a,b)=>(b.gLM-b.gProj)*cityWeight(b.c)-(a.gLM-a.gProj)*cityWeight(a.c));
+    if (unlockable.length>0) {
+      const u=unlockable[0], pot=u.gLM-u.gProj;
+      push(growth, pot, fmtINR(pot)+' users available now',
+        `Best growth lever: ${u.c} (Google, pacing ${Math.round(u.gProj/u.gLM*100)}%)`,
+        `${u.share}% of spend. CPC ${u.gCpcD<=0?'falling':'healthy'} at ₹${u.gCPC.toFixed(0)}. Demand exists — only budget is blocking users.`,
+        `Increase ${u.c} daily budget cap`, u.c);
     }
 
-    // Cities showing decline in top-3 = major concern
-    const top3 = ranked.slice(0,3);
-    top3.forEach(x => {
-      if (x.gPct!==null && x.gPct<-25) push('critical', citySpendMap[x.c],
-        `${x.share}% of total spend at risk`,
-        `Top city declining: ${x.c} (Google −${Math.abs(Math.round(x.gPct))}%)`,
-        `High-contribution city underperforming. Loss here impacts overall numbers significantly.`,
-        `Prioritise ${x.c} — raise budget & review campaigns`, x.c);
-    });
-
-    // Cross-city divergence: Tier 1 cities pulling in opposite directions
-    const t1Cities = ranked.filter(x => cityTier(x.c)==='T1' && x.gPct!==null);
-    const t1Growing = t1Cities.filter(x => x.gPct > 15);
-    const t1Declining = t1Cities.filter(x => x.gPct < -15);
-    if (t1Growing.length>0 && t1Declining.length>0) {
-      const grw = t1Growing[0], dec = t1Declining[0];
-      push('warning', citySpendMap[dec.c],
-        `${grw.c} +${Math.round(grw.gPct)}% vs ${dec.c} −${Math.abs(Math.round(dec.gPct))}%`,
-        `Tier 1 divergence — uneven user acquisition`,
-        `Top cities moving in opposite directions. Growth in ${grw.c} may mask structural issues in ${dec.c}. Combined user reach is lower than it appears.`,
-        `Investigate ${dec.c} independently — don't let ${grw.c} mask the gap`, dec.c);
+    // Tier 1 divergence: one top city scaling, another declining = masked overall weakness
+    const t1 = ranked.filter(x=>cityTier(x.c)==='T1' && x.gPct!==null);
+    const t1up = t1.filter(x=>x.gPct>15), t1dn = t1.filter(x=>x.gPct<-15);
+    if (t1up.length>0 && t1dn.length>0) {
+      const grw=t1up[0], dec=t1dn[0];
+      push(blockers, citySpendMap[dec.c]*0.4,
+        `${grw.c} +${Math.round(grw.gPct)}% masks ${dec.c} −${Math.abs(Math.round(dec.gPct))}%`,
+        `Tier 1 divergence — overall numbers hide a problem`,
+        `${dec.c} (${dec.share}% of spend) is declining while ${grw.c} grows. Blended view looks fine but ${dec.c} is losing users.`,
+        `Investigate ${dec.c} independently`, dec.c);
     }
 
-    // Wasted spend pattern: small city CPC spiking with low volume — not worth the cost
-    const t3Bleeding = ranked.filter(x => cityTier(x.c)==='T3' && x.gMTD>30000 && x.gCpcD>40);
-    if (t3Bleeding.length>0) {
-      const tb = t3Bleeding[0];
-      const waste = tb.gMTD*(1-tb.gCPCLM/tb.gCPC);
-      push('warning', waste,
-        `CPC up ${tb.gCpcD}% in low-volume market`,
-        `Inefficient spend: ${tb.c} (Tier 3, Google)`,
-        `Small market with ${tb.share}% of spend but CPC spiking ${tb.gCpcD}%. Low user volume + high cost = poor ROI. Reallocating to Tier 1/2 cities yields more users.`,
-        `Cap or reduce ${tb.c} budget — redirect to high-volume markets`, tb.c);
-    }
-
-    // Growth concentration risk: >60% of users from 2 cities
+    // Top 2 cities concentration risk
     const top2Share = ranked.slice(0,2).reduce((s,x)=>s+x.share,0);
-    if (top2Share>55 && ranked.length>5) {
-      push('info', totalAllSpend*0.1,
-        `${top2Share}% of spend in 2 cities`,
-        `Growth concentration risk`,
-        `${ranked[0].c} (${ranked[0].share}%) + ${ranked[1].c} (${ranked[1].share}%) dominate user acquisition. Any disruption in these markets hits overall numbers hard.`,
+    if (top2Share>55 && ranked.length>5)
+      push(growth, totalAllSpend*0.05, `${top2Share}% of users from 2 cities`,
+        `Growth concentration — ${ranked[0].c} + ${ranked[1].c} dominate`,
+        `Any disruption in these markets tanks overall numbers. Diversifying into Tier 2 reduces risk and expands total user pool.`,
         `Develop Tier 2 cities as growth buffer`, null);
-    }
-
-    // Untapped markets: Tier 2 city with CPC falling + pacing low = more users available cheaply
-    const untapped = ranked.filter(x => cityTier(x.c)==='T2' && x.gLM>50000 && x.gCpcD<=-10 && x.gProj/x.gLM<0.80);
-    if (untapped.length>0) {
-      const u = untapped[0];
-      push('positive', u.gLM-u.gProj,
-        `CPC −${Math.abs(u.gCpcD)}%, ${Math.round(u.gProj/u.gLM*100)}% paced — users available`,
-        `Untapped growth: ${u.c} (Tier 2)`,
-        `Users in ${u.c} are getting cheaper but budget is holding back reach. ${fmtINR(u.gLM-u.gProj)} of user acquisition left on the table this month.`,
-        `Increase ${u.c} budget — cheapest users available right now`, u.c);
-    }
   }
 
-  // ── Sort: level first, then city-weighted score ──
-  const ORDER = {urgent:0, critical:1, high:2, warning:3, positive:4, info:5};
-  alerts.sort((a,b) => ORDER[a.level]!==ORDER[b.level] ? ORDER[a.level]-ORDER[b.level] : b.score-a.score);
+  // ── Rank each bucket by city-weighted ₹ impact ──────────────────
+  const byScore = (a,b) => b.score - a.score;
+  blockers.sort(byScore);
+  waste.sort(byScore);
+  growth.sort(byScore);
 
-  // ── Cap to 10 most actionable alerts ──
-  // Rules:
-  // 1. Always keep urgent + critical (these are bleeding right now)
-  // 2. Max 2 alerts per city — prevents one bad city flooding the list
-  // 3. Keep at least 1 positive (scale opportunity) if slots remain
-  // 4. Tier 3 city alerts only make the cut if <8 slots used
-  // 5. Hard cap: 10 total
-  const MAX_ALERTS = 10;
-  const cityAlertCount = {};
+  // ── Assign display levels ─────────────────────────────────────────
+  blockers.forEach((a,i) => { a.level = i===0 ? 'urgent' : 'critical'; });
+  waste.forEach(a    => { a.level = 'warning'; });
+  growth.forEach(a   => { a.level = 'positive'; });
+
+  // ── Cap to 10: fill slots in priority order ───────────────────────
+  // Allocation: up to 4 blockers → up to 3 waste → up to 3 growth levers
+  // Rule: max 2 alerts per city, Tier 3 only fills if <8 slots used
+  const MAX = 10;
+  const cityCount = {};
   const capped = [];
-  const positives = alerts.filter(a => a.level==='positive');
-  const nonPositives = alerts.filter(a => a.level!=='positive');
 
-  for (const a of nonPositives) {
-    if (capped.length >= MAX_ALERTS) break;
+  function tryAdd(a) {
+    if (capped.length >= MAX) return;
     const tier = a.city ? cityTier(a.city) : null;
-    // Tier 3 alerts only if we have room (fewer than 8 filled)
-    if (tier==='T3' && capped.length >= 8) continue;
-    // Max 2 per city
+    if (tier==='T3' && capped.length >= 8) return;
     const key = a.city || '__global__';
-    if ((cityAlertCount[key]||0) >= 2) continue;
-    cityAlertCount[key] = (cityAlertCount[key]||0) + 1;
+    if ((cityCount[key]||0) >= 2) return;
+    cityCount[key] = (cityCount[key]||0) + 1;
     capped.push(a);
   }
 
-  // Add best scale opportunity if room
-  if (capped.length < MAX_ALERTS && positives.length > 0) {
-    capped.push(positives[0]);
-  }
+  blockers.slice(0,4).forEach(tryAdd);
+  waste.slice(0,4).forEach(tryAdd);
+  growth.slice(0,4).forEach(tryAdd);
+  // If slots still open, fill with remaining blockers/waste
+  [...blockers.slice(4), ...waste.slice(4)].forEach(tryAdd);
 
   const body  = document.getElementById('alerts-body');
   const count = document.getElementById('alert-count');
@@ -1091,31 +966,27 @@ function buildAlerts(rows, date, selectedCity) {
     return;
   }
 
-  const ICONS  = {urgent:'🚨',critical:'🔴',high:'⚡',warning:'⚠️',positive:'🚀',info:'📊'};
-  const LABELS = {urgent:'Act Now',critical:'Critical',high:'High Priority',warning:'Watch',positive:'Scale Up',info:'Insight'};
+  const ICONS  = {urgent:'🚨',critical:'🔴',warning:'⚠️',positive:'🚀'};
+  const LABELS = {urgent:'Fix Now',critical:'Fix Now',warning:'Wasted Spend',positive:'Pump In Money'};
   const sections = [
-    {key:'urgent',  label:'Immediate Action'},
-    {key:'critical',label:'Critical Issues'},
-    {key:'high',    label:'High Priority'},
-    {key:'warning', label:'Watch'},
-    {key:'positive',label:'Scale Opportunities'},
-    {key:'info',    label:'Strategic Insights'},
+    {keys:['urgent','critical'], label:'🚨 Blockers — Users Being Lost'},
+    {keys:['warning'],           label:'⚠️ Wasted Spend — Fix Efficiency'},
+    {keys:['positive'],          label:'🚀 Growth Levers — More Money = More Users'},
   ];
 
-  const totalRaw = alerts.length;
-  let html = capped.length < totalRaw
-    ? `<div style="font-size:10px;color:var(--text-tertiary);padding:4px 4px 8px;text-align:center">Top ${capped.length} of ${totalRaw} signals · ranked by business impact</div>`
-    : '';
+  const totalRaw = blockers.length + waste.length + growth.length;
+  let html = `<div style="font-size:10px;color:var(--text-tertiary);padding:4px 4px 10px;text-align:center">Top ${capped.length} signals · ranked by ₹ impact × city size</div>`;
 
   sections.forEach(sec => {
-    const grp = capped.filter(a => a.level===sec.key);
+    const grp = capped.filter(a => sec.keys.includes(a.level));
     if (!grp.length) return;
-    html += `<div class="section-divider">${sec.label} (${grp.length})</div>`;
+    html += `<div class="section-divider">${sec.label}</div>`;
     grp.forEach(a => {
-      const tierLabel = a.cityTier ? cityTierLabel(a.city) : '';
-      const shareTag = a.cityShare!==null ? `<span class="alert-impact-tag" style="background:rgba(0,0,0,0.06);color:var(--text-secondary)">${tierLabel} · ${a.cityShare}% of spend</span>` : '';
+      const tierLabel = a.city ? cityTierLabel(a.city) : '';
+      const shareTag  = a.cityShare!==null ? `<span class="alert-impact-tag" style="background:rgba(0,0,0,0.06);color:var(--text-secondary)">${tierLabel} · ${a.cityShare}% of spend</span>` : '';
+      const impactCls = a.level==='positive' ? 'tag-gain' : 'tag-loss';
       html += `<div class="alert-item alert-${a.level}">
-        <div class="alert-label">${ICONS[a.level]} ${LABELS[a.level]}${a.impact?` <span class="alert-impact-tag ${a.level==='positive'||a.level==='info'?'tag-gain':'tag-loss'}">${a.impact}</span>`:''} ${shareTag}</div>
+        <div class="alert-label">${ICONS[a.level]||'📊'} ${LABELS[a.level]||''}${a.impact?` <span class="alert-impact-tag ${impactCls}">${a.impact}</span>`:''} ${shareTag}</div>
         <div class="alert-impact">${a.title}</div>
         <div class="alert-context">${a.context}</div>
         <span class="alert-action">→ ${a.action}</span>
