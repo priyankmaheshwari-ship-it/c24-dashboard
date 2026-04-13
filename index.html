@@ -13,27 +13,27 @@
    Inspired by Apple glassmorphism + CARS24 brand
    ═══════════════════════════════════════════════ */
 :root {
-  /* CARS24 Brand — New Indigo Identity */
-  --c24-primary: #4B3AFF;
-  --c24-primary-soft: #6C5FFF;
-  --c24-primary-glow: rgba(75,58,255,0.15);
+  /* CARS24 Brand — "Younger Blue" Feb 2026 rebrand */
+  --c24-primary: #1860F0;
+  --c24-primary-soft: #4080F5;
+  --c24-primary-glow: rgba(24,96,240,0.15);
 
   /* Apple Vision Pro palette */
-  --cream: #F7F5F0;
-  --cream-dark: #EDE9E3;
+  --cream: #F5F7FF;
+  --cream-dark: #E8EEFF;
   --emerald: #1A6B4A;
   --emerald-light: #2D8F64;
   --emerald-soft: rgba(26,107,74,0.08);
 
   /* Glass */
-  --glass-bg: rgba(255,255,255,0.72);
-  --glass-border: rgba(255,255,255,0.6);
-  --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-  --glass-shadow-hover: 0 12px 40px rgba(0,0,0,0.09), 0 2px 6px rgba(0,0,0,0.05);
+  --glass-bg: rgba(255,255,255,0.78);
+  --glass-border: rgba(255,255,255,0.65);
+  --glass-shadow: 0 8px 32px rgba(24,96,240,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --glass-shadow-hover: 0 12px 40px rgba(24,96,240,0.10), 0 2px 6px rgba(0,0,0,0.05);
 
   /* Gradients */
-  --grad-indigo: linear-gradient(135deg, #4B3AFF 0%, #8B7CFF 100%);
-  --grad-lavender: linear-gradient(135deg, #E0DCFF 0%, #EDE9FF 100%);
+  --grad-indigo: linear-gradient(135deg, #1860F0 0%, #4E8AF5 100%);
+  --grad-lavender: linear-gradient(135deg, #E0EAFF 0%, #EDF2FF 100%);
   --grad-green: linear-gradient(135deg, #1A6B4A 0%, #2D8F64 60%, #4ECDC4 100%);
   --grad-amber: linear-gradient(135deg, #F5A623 0%, #F7C948 100%);
 
@@ -59,8 +59,8 @@ html { scroll-behavior: smooth; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--cream);
-  background-image: radial-gradient(ellipse at 20% 0%, rgba(75,58,255,0.06) 0%, transparent 50%),
-                    radial-gradient(ellipse at 80% 100%, rgba(26,107,74,0.05) 0%, transparent 50%);
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(24,96,240,0.07) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 100%, rgba(26,107,74,0.04) 0%, transparent 50%);
   min-height: 100vh;
   color: var(--text-primary);
   font-size: 13px;
@@ -142,9 +142,9 @@ body {
 
 .hero-gradient-indigo {
   background: var(--grad-indigo); color: white;
-  box-shadow: 0 8px 32px rgba(75,58,255,0.25);
+  box-shadow: 0 8px 32px rgba(24,96,240,0.25);
 }
-.hero-gradient-indigo:hover { box-shadow: 0 12px 40px rgba(75,58,255,0.35); }
+.hero-gradient-indigo:hover { box-shadow: 0 12px 40px rgba(24,96,240,0.35); }
 
 .hero-gradient-green {
   background: var(--grad-green); color: white;
@@ -211,7 +211,7 @@ body {
   font-size: 10px; font-weight: 700; padding: 3px 10px;
   border-radius: 100px; letter-spacing: 0.5px;
 }
-.tag-google { background: rgba(75,58,255,0.08); color: var(--c24-primary); }
+.tag-google { background: rgba(24,96,240,0.08); color: var(--c24-primary); }
 .tag-meta { background: var(--emerald-soft); color: var(--emerald); }
 
 /* ─── DATA TABLE ───────────────────────────────── */
@@ -231,11 +231,11 @@ thead th.hl { color: var(--c24-primary); }
 tbody tr {
   transition: background 0.15s ease;
 }
-tbody tr:hover { background: rgba(75,58,255,0.03); }
+tbody tr:hover { background: rgba(24,96,240,0.03); }
 
 tbody tr.total-row td { font-weight: 700; }
-tbody tr.total-row { background: rgba(75,58,255,0.04); }
-tbody tr.total-row:hover { background: rgba(75,58,255,0.07); }
+tbody tr.total-row { background: rgba(24,96,240,0.04); }
+tbody tr.total-row:hover { background: rgba(24,96,240,0.07); }
 
 td {
   padding: 7px 12px; text-align: right;
@@ -289,7 +289,7 @@ td:nth-child(2) {
 
 .alert-urgent   { background: rgba(255,59,48,0.06);  border-color: var(--red); }
 .alert-critical { background: rgba(255,59,48,0.05);  border-color: #E53935; }
-.alert-high     { background: rgba(75,58,255,0.06);  border-color: var(--c24-primary); }
+.alert-high     { background: rgba(24,96,240,0.06);  border-color: var(--c24-primary); }
 .alert-warning  { background: rgba(255,159,10,0.06); border-color: var(--amber); }
 .alert-positive { background: rgba(52,199,89,0.06);  border-color: var(--green); }
 .alert-info     { background: rgba(0,122,255,0.05);  border-color: var(--blue); }
@@ -314,7 +314,7 @@ td:nth-child(2) {
 }
 .alert-urgent  .alert-action { background: rgba(255,59,48,0.1); color: var(--red); }
 .alert-critical .alert-action { background: rgba(255,59,48,0.08); color: #E53935; }
-.alert-high    .alert-action { background: rgba(75,58,255,0.1); color: var(--c24-primary); }
+.alert-high    .alert-action { background: rgba(24,96,240,0.1); color: var(--c24-primary); }
 .alert-warning .alert-action { background: rgba(255,159,10,0.1); color: #B45309; }
 .alert-positive .alert-action { background: rgba(52,199,89,0.1); color: #15803D; }
 .alert-info    .alert-action { background: rgba(0,122,255,0.08); color: var(--blue); }
@@ -352,6 +352,38 @@ td:nth-child(2) {
   border-radius: 14px; padding: 20px; color: var(--red); font-weight: 500; margin: 20px;
 }
 
+/* ─── TOOLTIP ──────────────────────────────────── */
+[data-tip] { position: relative; cursor: help; }
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: #1C1C1E; color: #fff;
+  font-size: 11px; font-weight: 500; line-height: 1.45;
+  padding: 6px 10px; border-radius: 8px;
+  white-space: nowrap; max-width: 220px; white-space: normal;
+  text-align: center;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: 999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+[data-tip]:hover::after { opacity: 1; }
+
+/* Campaign type description pill */
+.type-desc {
+  font-size: 10px; font-weight: 500; color: var(--text-tertiary);
+  margin-left: 4px; font-style: italic;
+}
+
+/* ─── TAGLINE ───────────────────────────────────── */
+.brand-tagline {
+  font-size: 10px; font-weight: 500; color: var(--c24-primary);
+  opacity: 0.7; letter-spacing: 0.2px;
+  display: none;
+}
+@media (min-width: 900px) { .brand-tagline { display: block; } }
+
 /* ─── RESPONSIVE ───────────────────────────────── */
 @media (max-width: 900px) {
   .hero-strip { grid-template-columns: repeat(2, 1fr); }
@@ -369,11 +401,11 @@ td:nth-child(2) {
 <div class="topnav">
   <div class="nav-left">
     <div class="brand">
-      <span class="brand-mark">C24</span>
-      <span>CARS24</span>
+      <span class="brand-mark">Cars24</span>
       <span class="brand-divider"></span>
       <span class="brand-sub">Marketing Intelligence</span>
     </div>
+    <span class="brand-tagline">Better Drives, Better Lives</span>
   </div>
   <div class="nav-controls">
     <select id="date-select" class="pill-select"><option>Loading...</option></select>
@@ -562,16 +594,16 @@ function buildHeroStrip(rows) {
 //  PLATFORM TABLES
 // ─────────────────────────────────────────────
 const GOOGLE_TYPES = [
-  { key: 'Google - Total',  label: 'Google Total',  isTotal: true },
-  { key: 'Google - PMAX',   label: 'PMAX',          isTotal: false },
-  { key: 'Google - UACi',   label: 'UAC Install',   isTotal: false },
-  { key: 'Google - UACe',   label: 'UAC Engagement',isTotal: false },
-  { key: 'Google - Search', label: 'Search',        isTotal: false },
+  { key: 'Google - Total',  label: 'Google Total',   desc: 'All Google campaign types combined',                          isTotal: true },
+  { key: 'Google - PMAX',   label: 'PMAX',           desc: 'Performance Max — automated, broad reach across all channels',isTotal: false },
+  { key: 'Google - UACi',   label: 'UAC Install',    desc: 'Universal App Campaign — drives new app installs (UACI)',     isTotal: false },
+  { key: 'Google - UACe',   label: 'UAC Engage',     desc: 'Universal App Campaign — re-engages existing app users (UACE)',isTotal: false },
+  { key: 'Google - Search', label: 'Search',         desc: 'Non-brand keyword search — captures high purchase intent',    isTotal: false },
 ];
 const META_TYPES = [
-  { key: 'Facebook - Total',      label: 'FB Total',    isTotal: true },
-  { key: 'Facebook - Catalog',    label: 'Catalog',     isTotal: false },
-  { key: 'Facebook - Conversion', label: 'Conversion',  isTotal: false },
+  { key: 'Facebook - Total',      label: 'Meta Total',   desc: 'All Meta (Facebook) campaign types combined',                isTotal: true },
+  { key: 'Facebook - Catalog',    label: 'Catalog',      desc: 'Dynamic product ads from inventory feed — retargeting',      isTotal: false },
+  { key: 'Facebook - Conversion', label: 'Conversion',   desc: 'Standard conversion campaigns — broad acquisition',          isTotal: false },
 ];
 
 function buildGoogleTable(rows) {
@@ -592,9 +624,14 @@ function buildPlatformTable(rows, platform, types, title, dotCls, tagCls) {
     <div class="table-wrap"><table>
       <thead><tr>
         <th>Type</th><th>Metric</th>
-        <th>Yesterday</th><th class="col-sep">L7D</th><th>LL7D</th>
-        <th class="col-sep hl">MTD</th><th class="hl">vs LMTD</th><th>Projected</th>
-        <th class="col-sep">LMTD</th><th>Last Month</th>
+        <th data-tip="D-1: spend / clicks / CPC for yesterday">Yesterday</th>
+        <th class="col-sep" data-tip="Last 7 days (rolling)">L7D</th>
+        <th data-tip="Prior 7 days (8–14 days ago) — compare to L7D for momentum">LL7D</th>
+        <th class="col-sep hl" data-tip="Month-to-Date: 1st of month → yesterday">MTD</th>
+        <th class="hl" data-tip="MTD % change vs same number of days last month (LMTD)">vs LMTD</th>
+        <th data-tip="MTD pace extrapolated to full month end — if spend rate holds">Projected</th>
+        <th class="col-sep" data-tip="Last Month-to-Date: same number of elapsed days last month">LMTD</th>
+        <th data-tip="Full last calendar month — complete 30/31 day total">Last Month</th>
       </tr></thead><tbody>`;
 
   types.forEach(type => {
@@ -603,7 +640,13 @@ function buildPlatformTable(rows, platform, types, title, dotCls, tagCls) {
       const r = sub === 'CPC' ? computeAggCPC(typeRows) : aggregateSubRows(typeRows, sub);
       const trClass = type.isTotal ? 'total-row' : '';
       html += `<tr class="${trClass}">`;
-      html += `<td>${si === 0 ? type.label : ''}</td><td>${sub}</td>`;
+      const typeLabel = si === 0
+        ? `<span data-tip="${type.desc}">${type.label}</span>`
+        : '';
+      const subTip = sub==='SPEND'  ? 'Total ad spend in ₹'
+                   : sub==='CLICKS' ? 'Clicks = users entering the funnel from this campaign'
+                   : 'Cost Per Click — lower = more users per ₹ spent';
+      html += `<td>${typeLabel}</td><td><span data-tip="${subTip}">${sub}</span></td>`;
       if (r) {
         const d1=parseFloat(r.D1)||0, lmtd=parseFloat(r.LMTD)||0, lm=parseFloat(r.LM)||0;
         const mtd=parseFloat(r.MTD)||0, pct=r.MTD_vs_LMTD, proj=parseFloat(r.PROJECTED)||0;
