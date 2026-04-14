@@ -1,0 +1,16 @@
+2026-04-13 01:05:49,812 INFO ═══════════════════════════════════════════════════════
+2026-04-13 01:05:49,812 INFO CARS24 MARKETING PIPELINE — STARTING
+2026-04-13 01:05:49,812 INFO ═══════════════════════════════════════════════════════
+2026-04-13 01:05:49,812 INFO Run date: 2026-04-12 | MTD: 2026-04-01 → 2026-04-12
+2026-04-13 01:05:49,861 INFO Mappings loaded — Google: 287, Meta: 247
+2026-04-13 01:05:52,408 INFO Google: 18 cities | unmapped: 0
+2026-04-13 01:06:07,437 INFO Meta: 18 cities | unmapped: 2
+2026-04-13 01:06:07,447 INFO Built 432 pre-aggregated rows for 18 cities
+2026-04-13 01:06:07,452 INFO Email CSV saved: /Users/a38986/Desktop/cars24_dashboard_2026-04-12.csv
+2026-04-13 01:06:07,467 INFO Dashboard CSV updated: /Users/a38986/Desktop/Marketing C24/data/dashboard_data.csv (1728 total rows)
+2026-04-13 01:06:08,840 INFO GitHub push successful — dashboard live for 2026-04-12
+2026-04-13 01:06:08,840 WARNING Slack webhook not configured — skipping
+2026-04-13 01:06:13,649 INFO Email with CSV sent to: ['priyank.maheshwari@cars24.com', 'tanishka.tanwar@cars24.com', 'tejaswi.kumawat@cars24.com']
+2026-04-13 01:06:13,649 INFO ═══════════════════════════════════════════════════════
+2026-04-13 01:06:13,649 INFO PIPELINE COMPLETE ✅
+2026-04-13 01:06:13,650 INFO ═══════════════════════════════════════════════════════

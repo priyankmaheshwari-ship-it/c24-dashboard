@@ -1,0 +1,4 @@
+2026-04-13 01:07:23,653 INFO ── Watchdog starting ──
+2026-04-13 01:07:23,653 INFO Checking pipeline completion for run_date=2026-04-12
+2026-04-13 01:07:23,653 INFO ✅  Pipeline sentinel found for 2026-04-12 — all good.
+2026-04-13 01:07:23,653 INFO ── Watchdog done ──

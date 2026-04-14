@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://graph.facebook.com/v19.0/me/adaccounts?fields=id,name,currency,account_status&access_token=EAAStypKMCFkBREvnqYosLMtMMUWNIfK5F8iHdl6BABxXPBZCO4yt0urxxeWJAqEahNnv3KgaQedMgn3UdZAOzzraJFZCpjZAf9yhxghQVpMEDwQjjZAdRnuFkb7IWm0zeraX6CZCGmZA6WRk2hDAkTLYk74qyXEvlo1VvAjtLIOFE0IfKvqNRWqtsVpp6mJ97mhh3XlnMUZAGShd6rrLs9POKOdZBfGeZBfe0NmkSndz1F6CevJ1rakfNgwDAzWGQJ9sPjlyvz7CK0S33NCDpEh3ZCd\")",
+      "Bash(curl -s \"https://graph.facebook.com/v25.0/122255181146167293/adaccounts?fields=id,name,currency,account_status&access_token=EAAStypKMCFkBREvnqYosLMtMMUWNIfK5F8iHdl6BABxXPBZCO4yt0urxxeWJAqEahNnv3KgaQedMgn3UdZAOzzraJFZCpjZAf9yhxghQVpMEDwQjjZAdRnuFkb7IWm0zeraX6CZCGmZA6WRk2hDAkTLYk74qyXEvlo1VvAjtLIOFE0IfKvqNRWqtsVpp6mJ97mhh3XlnMUZAGShd6rrLs9POKOdZBfGeZBfe0NmkSndz1F6CevJ1rakfNgwDAzWGQJ9sPjlyvz7CK0S33NCDpEh3ZCd&limit=25&after=MTIwMjE1Mzc0MzI4NTYwNzIy\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(a[''''id''''],a[''''name''''],a[''''currency'''']\\) for a in d.get\\(''''data'''',[]\\)]\")",
+      "Bash(open http://localhost:8080)",
+      "Bash(git config:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+<svg width="1600" height="1100" viewBox="0 0 1600 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGlowA" x1="140" y1="80" x2="620" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD8AE"/>
+      <stop offset="1" stop-color="#FFF5E8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bgGlowB" x1="1160" y1="760" x2="1460" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#AEE5DA"/>
+      <stop offset="1" stop-color="#F6FBF8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="heroGradient" x1="0" y1="0" x2="730" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111111"/>
+      <stop offset="1" stop-color="#2B2B2B"/>
+    </linearGradient>
+    <linearGradient id="orangeCard" x1="0" y1="0" x2="260" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7A00"/>
+      <stop offset="1" stop-color="#FF9D42"/>
+    </linearGradient>
+    <linearGradient id="tealCard" x1="0" y1="0" x2="260" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0E7C66"/>
+      <stop offset="1" stop-color="#26A98C"/>
+    </linearGradient>
+    <filter id="softShadow" x="-80" y="-80" width="1760" height="1260" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#0E0E0E" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1100" fill="#F7F1E8"/>
+  <rect x="60" y="40" width="520" height="360" rx="180" fill="url(#bgGlowA)"/>
+  <rect x="1050" y="690" width="420" height="300" rx="150" fill="url(#bgGlowB)"/>
+
+  <g filter="url(#softShadow)">
+    <rect x="48" y="34" width="1504" height="1032" rx="34" fill="#FFFDF9"/>
+  </g>
+
+  <rect x="96" y="78" width="1408" height="72" rx="24" fill="#FFF6EC"/>
+  <rect x="118" y="96" width="72" height="36" rx="12" fill="#FF7A00"/>
+  <text x="138" y="120" fill="#FFFFFF" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="20" font-weight="700">C24</text>
+  <text x="210" y="120" fill="#181818" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="28" font-weight="700">Marketing Command Center</text>
+  <text x="600" y="120" fill="#7A746C" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">National view with city drill-down and campaign watchlist</text>
+
+  <rect x="1176" y="94" width="116" height="40" rx="20" fill="#FFFFFF"/>
+  <text x="1207" y="120" fill="#1D1D1D" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">9 Apr</text>
+  <rect x="1306" y="94" width="116" height="40" rx="20" fill="#FFFFFF"/>
+  <text x="1331" y="120" fill="#1D1D1D" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">All Cities</text>
+  <circle cx="1458" cy="114" r="8" fill="#13A36E"/>
+  <text x="1474" y="120" fill="#0E7C66" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Live</text>
+
+  <rect x="96" y="178" width="736" height="246" rx="30" fill="url(#heroGradient)"/>
+  <text x="132" y="228" fill="#FFB56D" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="2">EXECUTIVE SUMMARY</text>
+  <text x="132" y="290" fill="#FFFFFF" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="54" font-weight="700">Spend is scaling,</text>
+  <text x="132" y="348" fill="#FFFFFF" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="54" font-weight="700">but efficiency needs attention.</text>
+  <text x="132" y="392" fill="#CFC8BE" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500">Top opportunities: shift budget toward efficient cities, recover paused sets, and cut CPC inflation in Google Search.</text>
+
+  <rect x="866" y="178" width="206" height="246" rx="28" fill="url(#orangeCard)"/>
+  <text x="894" y="224" fill="#FFE6CF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">TOTAL MTD SPEND</text>
+  <text x="894" y="306" fill="#FFFFFF" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="52" font-weight="700">₹2.84 Cr</text>
+  <text x="894" y="346" fill="#FFF1E4" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600">+14.2% vs LMTD</text>
+  <text x="894" y="382" fill="#FFF1E4" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Healthy growth, but uneven across cities.</text>
+
+  <rect x="1090" y="178" width="206" height="246" rx="28" fill="url(#tealCard)"/>
+  <text x="1118" y="224" fill="#D9FFF5" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">BEST SCALE POCKET</text>
+  <text x="1118" y="306" fill="#FFFFFF" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="44" font-weight="700">Ahmedabad</text>
+  <text x="1118" y="346" fill="#EAFFFA" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600">CPC down 11%</text>
+  <text x="1118" y="382" fill="#EAFFFA" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Candidate for 10-20% budget increase.</text>
+
+  <rect x="1314" y="178" width="190" height="246" rx="28" fill="#FFF2E3"/>
+  <text x="1340" y="224" fill="#A35C1E" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">RISKS</text>
+  <text x="1340" y="296" fill="#161616" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="46" font-weight="700">7</text>
+  <text x="1340" y="334" fill="#9B4A1B" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">3 urgent</text>
+  <text x="1340" y="370" fill="#6F655C" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Paused campaigns, CPC spikes, and weak pacing in mid-tier markets.</text>
+
+  <text x="96" y="484" fill="#161616" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="24" font-weight="700">What Changed</text>
+  <text x="1410" y="484" fill="#8A837B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">From raw tables to guided decision-making</text>
+
+  <rect x="96" y="510" width="862" height="258" rx="28" fill="#FFFFFF"/>
+  <text x="126" y="552" fill="#1A1A1A" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="22" font-weight="700">Performance Storyboard</text>
+  <text x="126" y="580" fill="#847D75" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">A card-based layer that summarizes trend, pacing, and efficiency before the detailed table.</text>
+
+  <rect x="126" y="610" width="246" height="126" rx="22" fill="#FFF7EF" stroke="#F0DFCA"/>
+  <text x="148" y="642" fill="#9D5B1E" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">GOOGLE</text>
+  <text x="148" y="690" fill="#171717" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="34" font-weight="700">Pacing 82%</text>
+  <text x="148" y="718" fill="#6D655D" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Search CPC inflation is dragging efficiency.</text>
+
+  <rect x="392" y="610" width="246" height="126" rx="22" fill="#F1FBF8" stroke="#D6EEE7"/>
+  <text x="414" y="642" fill="#0E7C66" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">META</text>
+  <text x="414" y="690" fill="#171717" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="34" font-weight="700">Growth +23%</text>
+  <text x="414" y="718" fill="#6D655D" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Catalog campaigns are scaling cleanly in top cities.</text>
+
+  <rect x="658" y="610" width="270" height="126" rx="22" fill="#F8F4FF" stroke="#E6DBFF"/>
+  <text x="680" y="642" fill="#5E3ABF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">ACTION</text>
+  <text x="680" y="690" fill="#171717" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="30" font-weight="700">Move 12L this week</text>
+  <text x="680" y="718" fill="#6D655D" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Shift from weak Search pockets to high-conv Catalog and PMAX markets.</text>
+
+  <rect x="984" y="510" width="520" height="258" rx="28" fill="#111111"/>
+  <text x="1016" y="552" fill="#FFBF84" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4">ALERTS REIMAGINED</text>
+  <text x="1016" y="588" fill="#FFFFFF" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="30" font-weight="700">Manager-first action board</text>
+
+  <rect x="1016" y="616" width="456" height="42" rx="16" fill="#1F1F1F"/>
+  <circle cx="1042" cy="637" r="8" fill="#FF5E5E"/>
+  <text x="1062" y="644" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Campaigns paused in Pune</text>
+  <text x="1368" y="644" fill="#FFB3B3" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">₹8.4L at risk</text>
+
+  <rect x="1016" y="670" width="456" height="42" rx="16" fill="#1F1F1F"/>
+  <circle cx="1042" cy="691" r="8" fill="#FF9D42"/>
+  <text x="1062" y="698" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Google Search CPC up 34%</text>
+  <text x="1364" y="698" fill="#FFD3A7" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Efficiency drag</text>
+
+  <rect x="1016" y="724" width="456" height="42" rx="16" fill="#1F1F1F"/>
+  <circle cx="1042" cy="745" r="8" fill="#30C48D"/>
+  <text x="1062" y="752" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Ahmedabad ready to scale</text>
+  <text x="1373" y="752" fill="#B8F5DD" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Increase 15%</text>
+
+  <text x="96" y="836" fill="#161616" font-family="Space Grotesk, Sora, Arial, sans-serif" font-size="24" font-weight="700">Detailed View</text>
+  <text x="96" y="868" fill="#7D766F" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">The lower section still keeps the table, but it becomes calmer and more secondary after the executive summary and story cards.</text>
+
+  <rect x="96" y="896" width="1408" height="118" rx="26" fill="#FFFFFF"/>
+  <rect x="120" y="920" width="220" height="20" rx="10" fill="#FFE4C7"/>
+  <rect x="362" y="920" width="118" height="20" rx="10" fill="#F1F1F1"/>
+  <rect x="502" y="920" width="118" height="20" rx="10" fill="#F1F1F1"/>
+  <rect x="642" y="920" width="118" height="20" rx="10" fill="#FFF0DC"/>
+  <rect x="782" y="920" width="118" height="20" rx="10" fill="#F1F1F1"/>
+  <rect x="922" y="920" width="118" height="20" rx="10" fill="#F1F1F1"/>
+  <rect x="1062" y="920" width="118" height="20" rx="10" fill="#F1F1F1"/>
+  <rect x="1202" y="920" width="118" height="20" rx="10" fill="#F1F1F1"/>
+
+  <rect x="120" y="958" width="1280" height="12" rx="6" fill="#F5F2EE"/>
+  <rect x="120" y="984" width="1120" height="12" rx="6" fill="#F5F2EE"/>
+
+  <text x="96" y="1054" fill="#9B938B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Concept direction: warmer palette, bold executive summary, action-first cards, calmer tables, and stronger CARS24 character.</text>
+</svg>
