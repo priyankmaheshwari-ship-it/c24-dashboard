@@ -1187,11 +1187,11 @@ function chCityOrder(city) {
   return i >= 0 ? i : (city === 'Others' ? 999 : 99);
 }
 
-function getChRows(channel) {
+function getChRows(channel, city) {
   if (!CH_DATA.length) return [];
   const dates = [...new Set(CH_DATA.map(r => r.run_date))].sort();
   const latest = dates[dates.length - 1];
-  return CH_DATA.filter(r => r.run_date === latest && r.channel === channel);
+  return CH_DATA.filter(r => r.run_date === latest && r.channel === channel && (!city || city === 'all' || r.city === city));
 }
 
 function chFmt(n) {
@@ -1216,14 +1216,15 @@ function chPctCell(num, denom) {
   return `<span style="color:var(--text-secondary);font-weight:600">${p}%</span>`;
 }
 
-function buildChannelTable(channel, metrics, convPairs, title, dotColor) {
-  const rows = getChRows(channel);
+function buildChannelTable(channel, metrics, convPairs, title, dotColor, city) {
+  const rows = getChRows(channel, city);
   if (!rows.length) return '<div class="glass-card" style="padding:24px;color:var(--text-tertiary);text-align:center">No data available</div>';
 
   // Build city → metric lookup
   const cities = [...new Set(rows.map(r => r.city))].sort((a, b) => {
     const oa = chCityOrder(a), ob = chCityOrder(b);
     if (oa !== ob) return oa - ob;
+    if (a === 'Others') return 1; if (b === 'Others') return -1;
     return a.localeCompare(b);
   });
   const lkp = {};
@@ -1232,50 +1233,60 @@ function buildChannelTable(channel, metrics, convPairs, title, dotColor) {
     lkp[r.city][r.metric] = r;
   });
 
+  // Build header: City | [per metric: D-1, MTD, vs LMTD, L7D, LL7D] | [conv pairs]
   let html = `<div class="glass-card">
     <div class="card-head">
       <div class="card-title">
         <span class="platform-dot" style="background:${dotColor}"></span> ${title}
       </div>
-      <span style="font-size:11px;color:var(--text-tertiary)">Lead → Conversion funnel · MTD</span>
+      <span style="font-size:11px;color:var(--text-tertiary)">Lead → Conversion funnel · All periods</span>
     </div>
     <div class="table-wrap"><table>
       <thead><tr>
         <th style="text-align:left">City</th>`;
 
   metrics.forEach(m => {
-    html += `<th data-tip="${m.tip || ''}">${m.label}</th>`;
+    html += `<th class="col-sep hl" style="text-align:center" colspan="5">${m.label.replace(' D-1','')}</th>`;
+  });
+  if (convPairs.length) {
+    html += `<th class="col-sep" colspan="${convPairs.length}" style="text-align:center">Conversion</th>`;
+  }
+  html += `</tr><tr><th style="text-align:left"></th>`;
+  metrics.forEach(() => {
+    html += `<th class="col-sep hl" style="text-align:center">D-1</th>`;
+    html += `<th style="text-align:center">MTD</th>`;
+    html += `<th style="text-align:center">vs LMTD</th>`;
+    html += `<th style="text-align:center">L7D</th>`;
+    html += `<th style="text-align:center">LL7D</th>`;
   });
   convPairs.forEach(cp => {
-    html += `<th>${cp.label}</th>`;
+    html += `<th class="col-sep" style="text-align:center">${cp.label}</th>`;
   });
-  html += `<th class="col-sep hl" data-tip="Month-to-Date">MTD ${metrics[0].label}</th>
-        <th data-tip="vs same elapsed days last month">vs LMTD</th>
-        <th>L7D</th><th>LL7D</th>
-      </tr></thead><tbody>`;
+  html += `</tr></thead><tbody>`;
 
-  cities.forEach(city => {
-    const d = lkp[city] || {};
-    const primary = d[metrics[0].key];
-    const mtd  = primary ? Number(primary.MTD)  || 0 : 0;
-    const lmtd = primary ? Number(primary.LMTD) || 0 : 0;
-    const l7d  = primary ? Number(primary.L7D)  || 0 : 0;
-    const ll7d = primary ? Number(primary.LL7D) || 0 : 0;
-
-    html += `<tr><td style="font-weight:600;color:var(--text-primary)">${city}</td>`;
+  cities.forEach(c => {
+    const d = lkp[c] || {};
+    const isPri = CH_PRIORITY.includes(c);
+    const cityCls = isPri ? 'font-weight:700;color:var(--text-primary)' : 'color:var(--text-secondary)';
+    html += `<tr style="background:${isPri ? 'rgba(24,96,240,0.015)' : ''}"><td style="${cityCls}">${c}${isPri ? ' <span style="font-size:9px;color:var(--c24-primary);opacity:0.6">★</span>' : ''}</td>`;
     metrics.forEach(m => {
       const r = d[m.key];
-      const v = r ? Number(r.D1) || 0 : 0;
-      html += `<td>${chFmt(v)}</td>`;
+      const d1   = r ? Number(r.D1)   || 0 : 0;
+      const mtd  = r ? Number(r.MTD)  || 0 : 0;
+      const lmtd = r ? Number(r.LMTD) || 0 : 0;
+      const l7d  = r ? Number(r.L7D)  || 0 : 0;
+      const ll7d = r ? Number(r.LL7D) || 0 : 0;
+      html += `<td class="col-sep" style="text-align:center">${chFmt(d1)}</td>`;
+      html += `<td style="text-align:center"><strong>${chFmt(mtd)}</strong></td>`;
+      html += `<td style="text-align:center">${chVsLMTD(mtd, lmtd)}</td>`;
+      html += `<td style="text-align:center">${chFmt(l7d)}</td>`;
+      html += `<td style="text-align:center">${chFmt(ll7d)}</td>`;
     });
     convPairs.forEach(cp => {
       const num = d[cp.num]   ? Number(d[cp.num].MTD)   || 0 : 0;
       const den = d[cp.denom] ? Number(d[cp.denom].MTD) || 0 : 0;
-      html += `<td>${chPctCell(num, den)}</td>`;
+      html += `<td class="col-sep" style="text-align:center">${chPctCell(num, den)}</td>`;
     });
-    html += `<td class="col-sep"><strong>${chFmt(mtd)}</strong></td>`;
-    html += `<td>${chVsLMTD(mtd, lmtd)}</td>`;
-    html += `<td>${chFmt(l7d)}</td><td>${chFmt(ll7d)}</td>`;
     html += '</tr>';
   });
 
@@ -1283,8 +1294,8 @@ function buildChannelTable(channel, metrics, convPairs, title, dotColor) {
   return html;
 }
 
-function buildChKPIs(channel, kpiDefs) {
-  const rows = getChRows(channel);
+function buildChKPIs(channel, kpiDefs, city) {
+  const rows = getChRows(channel, city);
   if (!rows.length) return '';
   const sum = (metric, col) => rows.filter(r => r.metric === metric).reduce((s,r) => s + (Number(r[col]) || 0), 0);
 
@@ -1310,18 +1321,18 @@ function buildChKPIs(channel, kpiDefs) {
   return html;
 }
 
-function renderChannelPanels() {
+function renderChannelPanels(city) {
   // GMB
   document.getElementById('ch-kpis-gmb').innerHTML = buildChKPIs('GMB', [
     { metric: 'LEAD', label: 'MTD Leads' },
     { metric: 'LEAD CONNECTED', label: 'MTD Leads Connected' },
-  ]);
+  ], city);
   document.getElementById('ch-table-gmb').innerHTML = buildChannelTable(
     'GMB',
-    [{ key: 'LEAD', label: 'Leads D-1', tip: 'Total leads yesterday' },
-     { key: 'LEAD CONNECTED', label: 'Connected D-1', tip: 'Leads that got connected' }],
+    [{ key: 'LEAD', label: 'Lead', tip: 'Total leads' },
+     { key: 'LEAD CONNECTED', label: 'Connected', tip: 'Leads that got connected' }],
     [{ label: 'Connect%', num: 'LEAD CONNECTED', denom: 'LEAD' }],
-    'GMB — Lead Funnel', '#34C759'
+    'GMB — Lead Funnel', '#34C759', city
   );
 
   // Affiliates
@@ -1329,15 +1340,15 @@ function renderChannelPanels() {
     { metric: 'sessions', label: 'MTD Sessions' },
     { metric: 'BC', label: 'MTD BCs' },
     { metric: 'Visit', label: 'MTD Visits' },
-  ]);
+  ], city);
   document.getElementById('ch-table-affiliates').innerHTML = buildChannelTable(
     'Affiliates',
-    [{ key: 'sessions', label: 'Sessions D-1' },
-     { key: 'BC', label: 'BC D-1' },
-     { key: 'Visit', label: 'Visit D-1' }],
+    [{ key: 'sessions', label: 'Sessions' },
+     { key: 'BC', label: 'BC' },
+     { key: 'Visit', label: 'Visit' }],
     [{ label: 'S→BC%', num: 'BC', denom: 'sessions' },
      { label: 'BC→V%', num: 'Visit', denom: 'BC' }],
-    'Affiliates — Conversion Funnel', '#7C3AED'
+    'Affiliates — Conversion Funnel', '#7C3AED', city
   );
 
   // ATM
@@ -1345,15 +1356,15 @@ function renderChannelPanels() {
     { metric: 'LEAD', label: 'MTD Leads' },
     { metric: 'BC', label: 'MTD BCs' },
     { metric: 'VISIT', label: 'MTD Visits' },
-  ]);
+  ], city);
   document.getElementById('ch-table-atm').innerHTML = buildChannelTable(
     'ATM',
-    [{ key: 'LEAD', label: 'Lead D-1' },
-     { key: 'BC', label: 'BC D-1' },
-     { key: 'VISIT', label: 'Visit D-1' }],
+    [{ key: 'LEAD', label: 'Lead' },
+     { key: 'BC', label: 'BC' },
+     { key: 'VISIT', label: 'Visit' }],
     [{ label: 'L→BC%', num: 'BC', denom: 'LEAD' },
      { label: 'L→V%', num: 'VISIT', denom: 'LEAD' }],
-    'ATM / Influencer — Buyer Funnel', '#FF9F0A'
+    'ATM / Influencer — Buyer Funnel', '#FF9F0A', city
   );
 
   // Classified
@@ -1361,15 +1372,15 @@ function renderChannelPanels() {
     { metric: 'LEAD', label: 'MTD Leads' },
     { metric: 'BC', label: 'MTD BCs' },
     { metric: 'VISIT', label: 'MTD Visits' },
-  ]);
+  ], city);
   document.getElementById('ch-table-classified').innerHTML = buildChannelTable(
     'Classified',
-    [{ key: 'LEAD', label: 'Lead D-1' },
-     { key: 'BC', label: 'BC D-1' },
-     { key: 'VISIT', label: 'Visit D-1' }],
+    [{ key: 'LEAD', label: 'Lead' },
+     { key: 'BC', label: 'BC' },
+     { key: 'VISIT', label: 'Visit' }],
     [{ label: 'L→BC%', num: 'BC', denom: 'LEAD' },
      { label: 'L→V%', num: 'VISIT', denom: 'LEAD' }],
-    'Classified — Buyer Funnel', '#1860F0'
+    'Classified — Buyer Funnel', '#1860F0', city
   );
 }
 
