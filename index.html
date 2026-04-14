@@ -120,13 +120,31 @@ body {
 /* ─── MAIN LAYOUT ──────────────────────────────── */
 .page { max-width: 1440px; margin: 0 auto; padding: 24px 28px 60px; }
 
-/* ─── HERO KPI STRIP ──────────────────────────── */
-.hero-strip {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-  margin-bottom: 24px;
+/* ─── CHANNEL TABS ─────────────────────────────── */
+.channel-tabs {
+  display: flex; gap: 6px; margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.ch-tab {
+  appearance: none; border: none; outline: none; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  padding: 9px 20px; border-radius: 100px;
+  background: rgba(0,0,0,0.05); color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+.ch-tab:hover { background: rgba(0,0,0,0.09); color: var(--text-primary); }
+.ch-tab.active {
+  background: var(--grad-indigo); color: white;
+  box-shadow: 0 4px 16px rgba(24,96,240,0.3);
+}
+
+/* ─── PM SPEND KPI ROW (inside Performance tab) ── */
+.spend-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  margin-bottom: 20px;
 }
 .hero-card {
-  border-radius: 20px; padding: 22px 24px;
+  border-radius: 20px; padding: 20px 22px;
   position: relative; overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -156,7 +174,7 @@ body {
   font-size: 11px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.8px; opacity: 0.7; margin-bottom: 8px;
 }
-.hero-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+.hero-value { font-size: 26px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
 .hero-sub { font-size: 11px; font-weight: 500; margin-top: 6px; opacity: 0.65; }
 .hero-pct { font-size: 13px; font-weight: 700; margin-top: 6px; }
 .hero-pct.up { color: var(--emerald); }
@@ -172,6 +190,25 @@ body {
   width: 100px; height: 100px; border-radius: 50%;
   background: rgba(255,255,255,0.12);
 }
+
+/* ─── CHANNEL DATA TABLE ───────────────────────── */
+.ch-kpi-strip {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  margin-bottom: 20px;
+}
+.ch-kpi {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 18px; padding: 18px 20px;
+}
+.ch-kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-tertiary); margin-bottom: 6px; }
+.ch-kpi-val { font-size: 24px; font-weight: 800; letter-spacing: -0.8px; color: var(--text-primary); }
+.ch-kpi-sub { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+.ch-pct-pos { color: var(--emerald); font-weight: 700; }
+.ch-pct-neg { color: var(--red); font-weight: 700; }
+.ch-pct-warn { color: var(--amber); font-weight: 700; }
 
 /* ─── CONTENT GRID ─────────────────────────────── */
 .content-grid {
@@ -386,12 +423,14 @@ td:nth-child(2) {
 
 /* ─── RESPONSIVE ───────────────────────────────── */
 @media (max-width: 900px) {
-  .hero-strip { grid-template-columns: repeat(2, 1fr); }
+  .spend-strip { grid-template-columns: repeat(2, 1fr); }
+  .ch-kpi-strip { grid-template-columns: repeat(2, 1fr); }
   .topnav { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
   .page { padding: 16px; }
 }
 @media (max-width: 600px) {
-  .hero-strip { grid-template-columns: 1fr; }
+  .spend-strip { grid-template-columns: 1fr; }
+  .ch-kpi-strip { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -419,23 +458,60 @@ td:nth-child(2) {
 
 <!-- ═══ PAGE CONTENT ═════════════════════════════ -->
 <div class="page">
-  <!-- HERO KPI STRIP -->
-  <div id="hero-strip" class="hero-strip"></div>
 
-  <!-- MAIN GRID: Tables + Alerts -->
-  <div class="content-grid">
-    <div id="main-content">
-      <div class="loading"><div class="spinner"></div>Loading dashboard data...</div>
-    </div>
-    <div class="alerts-panel" id="alerts-panel">
-      <div class="alerts-head">
-        <div class="alerts-title">Smart Alerts <span class="alert-count-badge" id="alert-count" style="background:var(--c24-primary)">0</span></div>
+  <!-- CHANNEL TABS -->
+  <div class="channel-tabs">
+    <button class="ch-tab active" id="chtab-pm"          onclick="showCHTab('pm')">Performance Marketing</button>
+    <button class="ch-tab"        id="chtab-gmb"         onclick="showCHTab('gmb')">GMB</button>
+    <button class="ch-tab"        id="chtab-affiliates"  onclick="showCHTab('affiliates')">Affiliates</button>
+    <button class="ch-tab"        id="chtab-atm"         onclick="showCHTab('atm')">ATM</button>
+    <button class="ch-tab"        id="chtab-classified"  onclick="showCHTab('classified')">Classified</button>
+  </div>
+
+  <!-- PERFORMANCE MARKETING PANEL (Google + Meta) -->
+  <div id="panel-pm">
+    <!-- Spend KPI strip (moved from top) -->
+    <div id="spend-strip" class="spend-strip"></div>
+    <!-- Main Grid: Tables + Alerts -->
+    <div class="content-grid">
+      <div id="main-content">
+        <div class="loading"><div class="spinner"></div>Loading dashboard data...</div>
       </div>
-      <div class="alerts-body" id="alerts-body">
-        <div class="no-alerts">Loading alerts...</div>
+      <div class="alerts-panel" id="alerts-panel">
+        <div class="alerts-head">
+          <div class="alerts-title">Smart Alerts <span class="alert-count-badge" id="alert-count" style="background:var(--c24-primary)">0</span></div>
+        </div>
+        <div class="alerts-body" id="alerts-body">
+          <div class="no-alerts">Loading alerts...</div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- GMB PANEL -->
+  <div id="panel-gmb" style="display:none">
+    <div id="ch-kpis-gmb" class="ch-kpi-strip"></div>
+    <div id="ch-table-gmb"></div>
+  </div>
+
+  <!-- AFFILIATES PANEL -->
+  <div id="panel-affiliates" style="display:none">
+    <div id="ch-kpis-affiliates" class="ch-kpi-strip"></div>
+    <div id="ch-table-affiliates"></div>
+  </div>
+
+  <!-- ATM PANEL -->
+  <div id="panel-atm" style="display:none">
+    <div id="ch-kpis-atm" class="ch-kpi-strip"></div>
+    <div id="ch-table-atm"></div>
+  </div>
+
+  <!-- CLASSIFIED PANEL -->
+  <div id="panel-classified" style="display:none">
+    <div id="ch-kpis-classified" class="ch-kpi-strip"></div>
+    <div id="ch-table-classified"></div>
+  </div>
+
 </div>
 
 <!-- ═══ JAVASCRIPT (all logic preserved) ═════════ -->
@@ -446,17 +522,37 @@ td:nth-child(2) {
 let ALL_DATA = [];
 const CSV_URL = 'data/dashboard_data.csv';
 
+// Channel data
+let CH_DATA = [];
+const CH_CSV_URL = 'data/channels_data.csv';
+
 function loadData() {
+  // Load both CSVs in parallel
+  let pmDone = false, chDone = false;
+  const tryInit = () => { if (pmDone && chDone) { initControls(); renderAll(); } };
+
   Papa.parse(CSV_URL, {
     download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
     complete: function(results) {
       ALL_DATA = results.data;
-      if (!ALL_DATA.length) { showError('CSV loaded but no rows found.'); return; }
-      initControls();
-      renderAll();
+      if (!ALL_DATA.length) { showError('CSV loaded but no rows found.'); }
+      pmDone = true; tryInit();
     },
     error: function(err) {
       showError('Could not load dashboard_data.csv. ' + err.message);
+      pmDone = true; tryInit();
+    }
+  });
+
+  Papa.parse(CH_CSV_URL, {
+    download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
+    complete: function(results) {
+      CH_DATA = results.data;
+      chDone = true; tryInit();
+    },
+    error: function() {
+      console.warn('channels_data.csv not found');
+      chDone = true; tryInit();
     }
   });
 }
@@ -549,17 +645,21 @@ function renderAll() {
   document.getElementById('last-updated').textContent = formatDate(date);
   const mc = document.getElementById('main-content');
 
-  if (!rows.length) { mc.innerHTML = '<div class="error-box">No data for selected date/city.</div>'; return; }
+  if (!rows.length) { mc.innerHTML = '<div class="error-box">No data for selected date/city.</div>'; }
+  else {
+    buildSpendStrip(rows);
+    mc.innerHTML = buildGoogleTable(rows) + buildMetaTable(rows);
+    buildAlerts(rows, date, city);
+  }
 
-  buildHeroStrip(rows);
-  mc.innerHTML = buildGoogleTable(rows) + buildMetaTable(rows);
-  buildAlerts(rows, date, city);
+  // Render channel panels (use latest run_date from CH_DATA)
+  renderChannelPanels(city);
 }
 
 // ─────────────────────────────────────────────
-//  HERO KPI STRIP
+//  SPEND KPI STRIP (inside Performance Marketing tab)
 // ─────────────────────────────────────────────
-function buildHeroStrip(rows) {
+function buildSpendStrip(rows) {
   const gMTD  = agg(rows, 'Google', 'Google - Total',   'SPEND', 'MTD');
   const mMTD  = agg(rows, 'Meta',   'Facebook - Total', 'SPEND', 'MTD');
   const gD1   = agg(rows, 'Google', 'Google - Total',   'SPEND', 'D1');
@@ -567,7 +667,7 @@ function buildHeroStrip(rows) {
   const gPct  = avgPct(rows, 'Google', 'Google - Total', 'SPEND');
   const mPct  = avgPct(rows, 'Meta',   'Facebook - Total','SPEND');
 
-  document.getElementById('hero-strip').innerHTML = `
+  document.getElementById('spend-strip').innerHTML = `
     <div class="hero-card hero-gradient-indigo">
       <div class="hero-label">Total MTD Spend</div>
       <div class="hero-value">${fmtINR(gMTD + mMTD)}</div>
@@ -1063,6 +1163,215 @@ function fmtPct(v) {
   return `<span class="${cls}">${v>0?'+':''}${v}%</span>`;
 }
 function pctClass(v) { return v===null||v===undefined?'':v>=10?'pct-pos':v<=-10?'pct-neg':'pct-warn'; }
+
+// ─────────────────────────────────────────────
+//  CHANNEL TABS
+// ─────────────────────────────────────────────
+const CH_TABS = ['pm','gmb','affiliates','atm','classified'];
+
+function showCHTab(id) {
+  CH_TABS.forEach(t => {
+    document.getElementById('chtab-' + t).classList.toggle('active', t === id);
+    const panel = document.getElementById('panel-' + t);
+    if (panel) panel.style.display = t === id ? '' : 'none';
+  });
+}
+
+// ─────────────────────────────────────────────
+//  CHANNEL DATA RENDERERS
+// ─────────────────────────────────────────────
+const CH_PRIORITY = ['Delhi NCR','Mumbai','Pune','Bangalore','Hyderabad','Chennai','Ahmedabad'];
+
+function chCityOrder(city) {
+  const i = CH_PRIORITY.indexOf(city);
+  return i >= 0 ? i : (city === 'Others' ? 999 : 99);
+}
+
+function getChRows(channel) {
+  if (!CH_DATA.length) return [];
+  const dates = [...new Set(CH_DATA.map(r => r.run_date))].sort();
+  const latest = dates[dates.length - 1];
+  return CH_DATA.filter(r => r.run_date === latest && r.channel === channel);
+}
+
+function chFmt(n) {
+  if (n == null || n === '' || isNaN(n) || Number(n) === 0) return '<span class="zero-val">—</span>';
+  const v = Number(n);
+  if (v >= 100000) return (v/100000).toFixed(1) + 'L';
+  if (v >= 1000)   return (v/1000).toFixed(1) + 'K';
+  return v.toLocaleString('en-IN');
+}
+
+function chVsLMTD(mtd, lmtd) {
+  if (!lmtd || lmtd == 0) return '<span class="zero-val">—</span>';
+  const p = ((mtd - lmtd) / lmtd * 100).toFixed(1);
+  const v = parseFloat(p);
+  const cls = v > 5 ? 'ch-pct-pos' : v < -5 ? 'ch-pct-neg' : 'ch-pct-warn';
+  return `<span class="${cls}">${v >= 0 ? '↑' : '↓'}${Math.abs(p)}%</span>`;
+}
+
+function chPctCell(num, denom) {
+  if (!denom || denom == 0) return '<span class="zero-val">—</span>';
+  const p = (num / denom * 100).toFixed(1);
+  return `<span style="color:var(--text-secondary);font-weight:600">${p}%</span>`;
+}
+
+function buildChannelTable(channel, metrics, convPairs, title, dotColor) {
+  const rows = getChRows(channel);
+  if (!rows.length) return '<div class="glass-card" style="padding:24px;color:var(--text-tertiary);text-align:center">No data available</div>';
+
+  // Build city → metric lookup
+  const cities = [...new Set(rows.map(r => r.city))].sort((a, b) => {
+    const oa = chCityOrder(a), ob = chCityOrder(b);
+    if (oa !== ob) return oa - ob;
+    return a.localeCompare(b);
+  });
+  const lkp = {};
+  rows.forEach(r => {
+    if (!lkp[r.city]) lkp[r.city] = {};
+    lkp[r.city][r.metric] = r;
+  });
+
+  let html = `<div class="glass-card">
+    <div class="card-head">
+      <div class="card-title">
+        <span class="platform-dot" style="background:${dotColor}"></span> ${title}
+      </div>
+      <span style="font-size:11px;color:var(--text-tertiary)">Lead → Conversion funnel · MTD</span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th style="text-align:left">City</th>`;
+
+  metrics.forEach(m => {
+    html += `<th data-tip="${m.tip || ''}">${m.label}</th>`;
+  });
+  convPairs.forEach(cp => {
+    html += `<th>${cp.label}</th>`;
+  });
+  html += `<th class="col-sep hl" data-tip="Month-to-Date">MTD ${metrics[0].label}</th>
+        <th data-tip="vs same elapsed days last month">vs LMTD</th>
+        <th>L7D</th><th>LL7D</th>
+      </tr></thead><tbody>`;
+
+  cities.forEach(city => {
+    const d = lkp[city] || {};
+    const primary = d[metrics[0].key];
+    const mtd  = primary ? Number(primary.MTD)  || 0 : 0;
+    const lmtd = primary ? Number(primary.LMTD) || 0 : 0;
+    const l7d  = primary ? Number(primary.L7D)  || 0 : 0;
+    const ll7d = primary ? Number(primary.LL7D) || 0 : 0;
+
+    html += `<tr><td style="font-weight:600;color:var(--text-primary)">${city}</td>`;
+    metrics.forEach(m => {
+      const r = d[m.key];
+      const v = r ? Number(r.D1) || 0 : 0;
+      html += `<td>${chFmt(v)}</td>`;
+    });
+    convPairs.forEach(cp => {
+      const num = d[cp.num]   ? Number(d[cp.num].MTD)   || 0 : 0;
+      const den = d[cp.denom] ? Number(d[cp.denom].MTD) || 0 : 0;
+      html += `<td>${chPctCell(num, den)}</td>`;
+    });
+    html += `<td class="col-sep"><strong>${chFmt(mtd)}</strong></td>`;
+    html += `<td>${chVsLMTD(mtd, lmtd)}</td>`;
+    html += `<td>${chFmt(l7d)}</td><td>${chFmt(ll7d)}</td>`;
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  return html;
+}
+
+function buildChKPIs(channel, kpiDefs) {
+  const rows = getChRows(channel);
+  if (!rows.length) return '';
+  const sum = (metric, col) => rows.filter(r => r.metric === metric).reduce((s,r) => s + (Number(r[col]) || 0), 0);
+
+  let html = '';
+  kpiDefs.forEach(k => {
+    const mtd  = sum(k.metric, 'MTD');
+    const lmtd = sum(k.metric, 'LMTD');
+    const d1   = sum(k.metric, 'D1');
+    let pctHtml = '';
+    if (lmtd > 0) {
+      const p = ((mtd - lmtd) / lmtd * 100).toFixed(1);
+      const v = parseFloat(p);
+      const cls = v > 5 ? 'ch-pct-pos' : v < -5 ? 'ch-pct-neg' : 'ch-pct-warn';
+      pctHtml = `<div class="${cls}" style="font-size:13px;font-weight:700;margin-top:4px">${v>=0?'↑':'↓'}${Math.abs(p)}% vs LMTD</div>`;
+    }
+    html += `<div class="ch-kpi">
+      <div class="ch-kpi-label">${k.label}</div>
+      <div class="ch-kpi-val">${mtd.toLocaleString('en-IN')}</div>
+      <div class="ch-kpi-sub">D-1: ${d1.toLocaleString('en-IN')}</div>
+      ${pctHtml}
+    </div>`;
+  });
+  return html;
+}
+
+function renderChannelPanels() {
+  // GMB
+  document.getElementById('ch-kpis-gmb').innerHTML = buildChKPIs('GMB', [
+    { metric: 'LEAD', label: 'MTD Leads' },
+    { metric: 'LEAD CONNECTED', label: 'MTD Leads Connected' },
+  ]);
+  document.getElementById('ch-table-gmb').innerHTML = buildChannelTable(
+    'GMB',
+    [{ key: 'LEAD', label: 'Leads D-1', tip: 'Total leads yesterday' },
+     { key: 'LEAD CONNECTED', label: 'Connected D-1', tip: 'Leads that got connected' }],
+    [{ label: 'Connect%', num: 'LEAD CONNECTED', denom: 'LEAD' }],
+    'GMB — Lead Funnel', '#34C759'
+  );
+
+  // Affiliates
+  document.getElementById('ch-kpis-affiliates').innerHTML = buildChKPIs('Affiliates', [
+    { metric: 'sessions', label: 'MTD Sessions' },
+    { metric: 'BC', label: 'MTD BCs' },
+    { metric: 'Visit', label: 'MTD Visits' },
+  ]);
+  document.getElementById('ch-table-affiliates').innerHTML = buildChannelTable(
+    'Affiliates',
+    [{ key: 'sessions', label: 'Sessions D-1' },
+     { key: 'BC', label: 'BC D-1' },
+     { key: 'Visit', label: 'Visit D-1' }],
+    [{ label: 'S→BC%', num: 'BC', denom: 'sessions' },
+     { label: 'BC→V%', num: 'Visit', denom: 'BC' }],
+    'Affiliates — Conversion Funnel', '#7C3AED'
+  );
+
+  // ATM
+  document.getElementById('ch-kpis-atm').innerHTML = buildChKPIs('ATM', [
+    { metric: 'LEAD', label: 'MTD Leads' },
+    { metric: 'BC', label: 'MTD BCs' },
+    { metric: 'VISIT', label: 'MTD Visits' },
+  ]);
+  document.getElementById('ch-table-atm').innerHTML = buildChannelTable(
+    'ATM',
+    [{ key: 'LEAD', label: 'Lead D-1' },
+     { key: 'BC', label: 'BC D-1' },
+     { key: 'VISIT', label: 'Visit D-1' }],
+    [{ label: 'L→BC%', num: 'BC', denom: 'LEAD' },
+     { label: 'L→V%', num: 'VISIT', denom: 'LEAD' }],
+    'ATM / Influencer — Buyer Funnel', '#FF9F0A'
+  );
+
+  // Classified
+  document.getElementById('ch-kpis-classified').innerHTML = buildChKPIs('Classified', [
+    { metric: 'LEAD', label: 'MTD Leads' },
+    { metric: 'BC', label: 'MTD BCs' },
+    { metric: 'VISIT', label: 'MTD Visits' },
+  ]);
+  document.getElementById('ch-table-classified').innerHTML = buildChannelTable(
+    'Classified',
+    [{ key: 'LEAD', label: 'Lead D-1' },
+     { key: 'BC', label: 'BC D-1' },
+     { key: 'VISIT', label: 'Visit D-1' }],
+    [{ label: 'L→BC%', num: 'BC', denom: 'LEAD' },
+     { label: 'L→V%', num: 'VISIT', denom: 'LEAD' }],
+    'Classified — Buyer Funnel', '#1860F0'
+  );
+}
 
 // ─────────────────────────────────────────────
 //  INIT

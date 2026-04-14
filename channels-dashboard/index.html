@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARS24 — Channel Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+:root {
+  --c24-primary: #1860F0;
+  --c24-primary-glow: rgba(24,96,240,0.15);
+  --cream: #F5F7FF;
+  --emerald: #1A6B4A;
+  --emerald-soft: rgba(26,107,74,0.08);
+  --glass-bg: rgba(255,255,255,0.78);
+  --glass-border: rgba(255,255,255,0.65);
+  --glass-shadow: 0 8px 32px rgba(24,96,240,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --glass-shadow-hover: 0 12px 40px rgba(24,96,240,0.10), 0 2px 6px rgba(0,0,0,0.05);
+  --grad-indigo: linear-gradient(135deg, #1860F0 0%, #4E8AF5 100%);
+  --grad-green: linear-gradient(135deg, #1A6B4A 0%, #2D8F64 60%, #4ECDC4 100%);
+  --grad-purple: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  --text-primary: #1C1C1E;
+  --text-secondary: #6E6E73;
+  --text-tertiary: #AEAEB2;
+  --red: #FF3B30;
+  --green: #34C759;
+  --amber: #FF9F0A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--cream);
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(24,96,240,0.07) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 100%, rgba(124,58,237,0.04) 0%, transparent 50%);
+  min-height: 100vh; color: var(--text-primary); font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+.topnav {
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(247,245,240,0.78);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 12px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-left { display: flex; align-items: center; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; color: var(--text-primary); letter-spacing: -0.3px; }
+.brand-mark { background: var(--grad-indigo); color: white; font-weight: 900; font-size: 12px; padding: 5px 9px; border-radius: 10px; letter-spacing: 0.5px; }
+.brand-divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); }
+.brand-sub { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.nav-controls { display: flex; align-items: center; gap: 10px; }
+.pill-select {
+  appearance: none; border: none; outline: none;
+  background: rgba(0,0,0,0.04); border-radius: 100px;
+  padding: 7px 30px 7px 14px; font-size: 12px; font-weight: 600;
+  font-family: inherit; color: var(--text-primary); cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236E6E73' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  transition: all 0.2s ease;
+}
+.pill-select:hover { background-color: rgba(0,0,0,0.07); }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--emerald-soft); border-radius: 100px;
+  padding: 5px 12px; font-size: 11px; font-weight: 600; color: var(--emerald);
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* PAGE */
+.page { max-width: 1440px; margin: 0 auto; padding: 24px 28px 60px; }
+
+/* HERO */
+.hero-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.hero-card { border-radius: 20px; padding: 22px 24px; position: relative; overflow: hidden; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.hero-card:hover { transform: translateY(-2px); }
+.hero-glass { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+.hero-glass:hover { box-shadow: var(--glass-shadow-hover); }
+.hero-indigo { background: var(--grad-indigo); color: white; box-shadow: 0 8px 32px rgba(24,96,240,0.25); }
+.hero-green  { background: var(--grad-green);  color: white; box-shadow: 0 8px 32px rgba(26,107,74,0.25); }
+.hero-purple { background: var(--grad-purple); color: white; box-shadow: 0 8px 32px rgba(124,58,237,0.25); }
+.hero-indigo:hover { box-shadow: 0 12px 40px rgba(24,96,240,0.35); }
+.hero-green:hover  { box-shadow: 0 12px 40px rgba(26,107,74,0.35); }
+.hero-purple:hover { box-shadow: 0 12px 40px rgba(124,58,237,0.35); }
+.hero-indigo::after,.hero-green::after,.hero-purple::after {
+  content:''; position:absolute; right:-20px; top:-20px;
+  width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.12);
+}
+.hero-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.7; margin-bottom: 8px; }
+.hero-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+.hero-sub   { font-size: 11px; font-weight: 500; margin-top: 6px; opacity: 0.65; }
+.hero-pct   { font-size: 13px; font-weight: 700; margin-top: 6px; }
+.hero-pct.up   { color: var(--emerald); }
+.hero-pct.down { color: var(--red); }
+.hero-indigo .hero-pct,.hero-green .hero-pct,.hero-purple .hero-pct { color: rgba(255,255,255,0.85); }
+
+/* GLASS CARD */
+.glass-card {
+  background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); border-radius: 20px;
+  box-shadow: var(--glass-shadow); margin-bottom: 20px; overflow: hidden;
+  transition: box-shadow 0.25s ease;
+}
+.glass-card:hover { box-shadow: var(--glass-shadow-hover); }
+.card-head { padding: 18px 24px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 10px; }
+.platform-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-c { background: var(--grad-indigo); }
+.dot-g { background: var(--grad-green); }
+.dot-a { background: var(--grad-purple); }
+.dot-t { background: linear-gradient(135deg, #FF9F0A 0%, #FF6B00 100%); }
+.platform-tag { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 100px; letter-spacing: 0.5px; }
+.tag-c { background: rgba(24,96,240,0.08); color: var(--c24-primary); }
+.tag-g { background: var(--emerald-soft); color: var(--emerald); }
+.tag-a { background: rgba(124,58,237,0.08); color: #7C3AED; }
+.tag-t { background: rgba(255,159,10,0.1); color: #CC7A00; }
+
+/* TABS */
+.channel-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn {
+  padding: 8px 18px; border-radius: 100px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; font-family: inherit;
+  transition: all 0.2s ease; background: rgba(0,0,0,0.04); color: var(--text-secondary);
+}
+.tab-btn:hover { background: rgba(0,0,0,0.07); }
+.tab-active-c { background: var(--c24-primary) !important; color: white !important; box-shadow: 0 4px 12px rgba(24,96,240,0.3); }
+.tab-active-g { background: var(--emerald) !important; color: white !important; box-shadow: 0 4px 12px rgba(26,107,74,0.3); }
+.tab-active-a { background: #7C3AED !important; color: white !important; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+.tab-active-t   { background: linear-gradient(135deg,#FF9F0A,#FF6B00) !important; color: white !important; box-shadow: 0 4px 12px rgba(255,159,10,0.3); }
+.tab-active-all { background: var(--grad-indigo) !important; color: white !important; box-shadow: 0 4px 12px rgba(24,96,240,0.2); }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; padding: 0 8px 16px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+thead th {
+  padding: 8px 12px; text-align: right;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-tertiary);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  white-space: nowrap; position: sticky; top: 0;
+  background: rgba(255,255,255,0.9);
+  line-height: 1.4;
+}
+thead th .th-date {
+  display: block; font-size: 9px; font-weight: 500;
+  text-transform: none; letter-spacing: 0; color: var(--text-tertiary);
+  opacity: 0.7; margin-top: 2px;
+}
+thead th:first-child, thead th:nth-child(2) { text-align: left; }
+thead th.hl { color: var(--c24-primary); }
+thead th.derived { color: #7C3AED; }
+tbody tr { transition: background 0.15s ease; }
+tbody tr:hover { background: rgba(24,96,240,0.03); }
+tbody tr.priority { background: rgba(24,96,240,0.015); }
+tbody tr.total-row td { font-weight: 700; }
+tbody tr.total-row { background: rgba(24,96,240,0.05); border-top: 1px solid rgba(24,96,240,0.1); }
+tbody tr.total-row:hover { background: rgba(24,96,240,0.08); }
+tbody tr.sep-row td { background: rgba(0,0,0,0.02); padding: 4px 12px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); border-bottom: 1px solid rgba(0,0,0,0.04); }
+td { padding: 7px 12px; text-align: right; border-bottom: 1px solid rgba(0,0,0,0.03); }
+td:first-child { text-align: left; color: var(--text-secondary); font-size: 11px; font-weight: 500; white-space: nowrap; }
+td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.zero-val { color: var(--text-tertiary); }
+.pct-pos  { color: #1A6B4A; font-weight: 700; }
+.pct-neg  { color: var(--red); font-weight: 700; }
+.pct-warn { color: var(--amber); font-weight: 700; }
+.col-sep  { border-left: 1px solid rgba(0,0,0,0.06); }
+.city-priority { font-weight: 700 !important; color: var(--text-primary) !important; }
+.city-star::after { content: ' ★'; font-size: 9px; color: var(--c24-primary); opacity: 0.6; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .hero-strip { grid-template-columns: repeat(2, 1fr); }
+  .topnav { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+  .page { padding: 16px; }
+}
+@media (max-width: 600px) { .hero-strip { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-left">
+    <div class="brand">
+      <span class="brand-mark">C24</span>
+      <span class="brand-divider"></span>
+      <span>Channel Intelligence</span>
+    </div>
+    <div class="brand-sub">Classified · GMB · Affiliates — D-1: Apr 13, 2026</div>
+  </div>
+  <div class="nav-controls">
+    <select class="pill-select" id="cityFilter" onchange="applyFilters()">
+      <option value="ALL">All Cities</option>
+      <option value="Delhi NCR">Delhi NCR</option>
+      <option value="Mumbai">Mumbai</option>
+      <option value="Pune">Pune</option>
+      <option value="Bangalore">Bangalore</option>
+      <option value="Hyderabad">Hyderabad</option>
+      <option value="Chennai">Chennai</option>
+      <option value="Ahmedabad">Ahmedabad</option>
+      <option value="Chandigarh">Chandigarh</option>
+      <option value="Coimbatore">Coimbatore</option>
+      <option value="Indore">Indore</option>
+      <option value="Jaipur">Jaipur</option>
+      <option value="Kochi">Kochi</option>
+      <option value="Kolkata">Kolkata</option>
+      <option value="Lucknow">Lucknow</option>
+      <option value="Patna">Patna</option>
+      <option value="Surat">Surat</option>
+      <option value="Others">Others</option>
+    </select>
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      D-1 · Apr 13
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Hero KPIs -->
+  <div class="hero-strip">
+    <div class="hero-card hero-indigo">
+      <div class="hero-label">Classified — MTD Leads</div>
+      <div class="hero-value" id="h-c-lead">—</div>
+      <div class="hero-sub">unique users · D-1: <span id="h-c-lead-d1">—</span></div>
+      <div class="hero-pct" id="h-c-pct">—</div>
+    </div>
+    <div class="hero-card hero-green">
+      <div class="hero-label">GMB — MTD Leads</div>
+      <div class="hero-value" id="h-g-lead">—</div>
+      <div class="hero-sub">unique leads · D-1: <span id="h-g-lead-d1">—</span></div>
+      <div class="hero-pct" id="h-g-pct">—</div>
+    </div>
+    <div class="hero-card hero-purple">
+      <div class="hero-label">Affiliates — MTD Sessions</div>
+      <div class="hero-value" id="h-a-sess">—</div>
+      <div class="hero-sub">unique users · D-1: <span id="h-a-sess-d1">—</span></div>
+      <div class="hero-pct" id="h-a-pct">—</div>
+    </div>
+    <div class="hero-card hero-glass">
+      <div class="hero-label">Combined — MTD BCs</div>
+      <div class="hero-value" id="h-bc-total">—</div>
+      <div class="hero-sub">Classified + Affiliates</div>
+      <div class="hero-pct" id="h-bc-pct">—</div>
+    </div>
+  </div>
+
+  <!-- Channel Tabs -->
+  <div class="channel-tabs">
+    <button class="tab-btn tab-active-c" id="tab-c" onclick="showChannel('c')">Classified</button>
+    <button class="tab-btn" id="tab-g" onclick="showChannel('g')">GMB</button>
+    <button class="tab-btn" id="tab-a" onclick="showChannel('a')">Affiliates</button>
+    <button class="tab-btn" id="tab-t" onclick="showChannel('t')">ATM</button>
+    <button class="tab-btn" id="tab-all" onclick="showChannel('all')">All Channels</button>
+  </div>
+
+  <!-- CLASSIFIED -->
+  <div id="panel-c">
+    <div class="glass-card">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="platform-dot dot-c"></span>
+          Classified Buyer Funnel
+          <span class="platform-tag tag-c">OLX · CarDekho · Others</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary)">Lead → BC → Visit conversion</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Metric</th>
+              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
+              <th>L7D<span class="th-date">7–13 Apr</span></th>
+              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
+              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th>vs LMTD</th>
+              <th>LMTD<span class="th-date">1–13 Mar</span></th>
+              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-c"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- GMB -->
+  <div id="panel-g" style="display:none">
+    <div class="glass-card">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="platform-dot dot-g"></span>
+          GMB Buyer Funnel
+          <span class="platform-tag tag-g">Google My Business</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary)">Lead → Connected → Pushed conversion</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Metric</th>
+              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
+              <th>L7D<span class="th-date">7–13 Apr</span></th>
+              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
+              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th>vs LMTD</th>
+              <th>LMTD<span class="th-date">1–13 Mar</span></th>
+              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-g"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFFILIATES -->
+  <div id="panel-a" style="display:none">
+    <div class="glass-card">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="platform-dot dot-a"></span>
+          Affiliates Buyer Funnel
+          <span class="platform-tag tag-a">Affiliate Networks</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary)">Session → BC → Visit conversion</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Metric</th>
+              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
+              <th>L7D<span class="th-date">7–13 Apr</span></th>
+              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
+              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th>vs LMTD</th>
+              <th>LMTD<span class="th-date">1–13 Mar</span></th>
+              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-a"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATM -->
+  <div id="panel-t" style="display:none">
+    <div class="glass-card">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="platform-dot dot-t"></span>
+          ATM / Influencer Buyer Funnel
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary)">Lead → BC → Visit conversion</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Metric</th>
+              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
+              <th>L7D<span class="th-date">7–13 Apr</span></th>
+              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
+              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th>vs LMTD</th>
+              <th>LMTD<span class="th-date">1–13 Mar</span></th>
+              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-t"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL CHANNELS -->
+  <div id="panel-all" style="display:none">
+    <div class="glass-card">
+      <div class="card-head">
+        <div class="card-title">
+          All Channels — Lead / Session Summary
+          <span class="platform-tag tag-c">Classified + GMB + Affiliates</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Channel</th>
+              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
+              <th>L7D<span class="th-date">7–13 Apr</span></th>
+              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
+              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th>vs LMTD</th>
+              <th>LMTD<span class="th-date">1–13 Mar</span></th>
+              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-all"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ─── PRIORITY CITY ORDER ──────────────────────────────────────────────────────
+const PRIORITY = ['Delhi NCR','Mumbai','Pune','Bangalore','Hyderabad','Chennai','Ahmedabad'];
+
+function cityOrder(city) {
+  const i = PRIORITY.indexOf(city);
+  return i >= 0 ? i : 99;
+}
+function isPriority(city) { return PRIORITY.includes(city); }
+
+// ─── DATA — loaded from channels_data.csv ────────────────────────────────────
+// CSV schema: run_date, city, channel, metric, D1, L7D, LL7D, MTD, LMTD, LM
+// Converted to tuple arrays: [city, metric, D1, L7D, LL7D, MTD, LMTD, LM]
+let RAW_C = [], RAW_G = [], RAW_A = [], RAW_T = [];
+
+function loadChannelData(callback) {
+  const CSV_URL = '../data/channels_data.csv';
+  Papa.parse(CSV_URL, {
+    download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
+    complete: function(results) {
+      const rows = results.data;
+      // Use only the latest run_date
+      const dates = [...new Set(rows.map(r => r.run_date))].sort();
+      const latest = dates[dates.length - 1];
+      const fresh = rows.filter(r => r.run_date === latest);
+
+      const toTuple = r => [r.city, r.metric, r.D1, r.L7D, r.LL7D, r.MTD, r.LMTD, r.LM];
+      RAW_C = fresh.filter(r => r.channel === 'Classified').map(toTuple);
+      RAW_G = fresh.filter(r => r.channel === 'GMB').map(toTuple);
+      RAW_A = fresh.filter(r => r.channel === 'Affiliates').map(toTuple);
+      RAW_T = fresh.filter(r => r.channel === 'ATM').map(toTuple);
+
+      // Update nav badge with latest run date
+      const badge = document.getElementById('last-updated');
+      if (badge) badge.textContent = 'Data: ' + latest;
+
+      callback();
+    },
+    error: function() {
+      // Fallback: render with empty data (shows — placeholders)
+      console.warn('channels_data.csv not found — showing empty state');
+      callback();
+    }
+  });
+}
+
+// ─── LEGACY SEED (kept for reference, no longer used directly) ────────────────
+// Columns: [city, metric, D1, L7D, LL7D, MTD, LMTD, LM]
+const _SEED_C = [
+  ["Delhi NCR","LEAD",669,4554,4074,8061,6942,17453],
+  ["Delhi NCR","BC",172,1505,1250,2607,1865,4940],
+  ["Delhi NCR","VISIT",18,194,171,345,279,735],
+  ["Mumbai","LEAD",171,1192,1096,2137,1744,4443],
+  ["Mumbai","BC",44,359,342,657,479,1198],
+  ["Mumbai","VISIT",10,56,57,104,76,202],
+  ["Pune","LEAD",217,1409,1234,2467,2128,5279],
+  ["Pune","BC",54,464,422,831,573,1459],
+  ["Pune","VISIT",6,78,67,136,104,248],
+  ["Bangalore","LEAD",282,1895,1683,3343,3048,7583],
+  ["Bangalore","BC",52,544,564,1034,923,2329],
+  ["Bangalore","VISIT",10,91,97,177,182,435],
+  ["Hyderabad","LEAD",268,1797,1378,2966,2492,6497],
+  ["Hyderabad","BC",64,490,386,830,744,1835],
+  ["Hyderabad","VISIT",13,95,62,150,119,274],
+  ["Chennai","LEAD",123,902,800,1588,1464,3913],
+  ["Chennai","BC",37,277,267,522,376,1043],
+  ["Chennai","VISIT",8,53,48,99,60,160],
+  ["Ahmedabad","LEAD",153,1164,1039,2092,1890,4538],
+  ["Ahmedabad","BC",38,358,273,595,429,1176],
+  ["Ahmedabad","VISIT",7,49,44,89,83,219],
+  ["Chandigarh","LEAD",47,336,273,576,265,1006],
+  ["Chandigarh","BC",12,78,61,132,42,155],
+  ["Chandigarh","VISIT",0,9,11,18,9,31],
+  ["Coimbatore","LEAD",50,280,264,503,413,1028],
+  ["Coimbatore","BC",13,91,83,162,86,239],
+  ["Coimbatore","VISIT",5,16,10,22,13,39],
+  ["Indore","LEAD",56,514,537,969,899,2373],
+  ["Indore","BC",13,190,167,337,231,614],
+  ["Indore","VISIT",2,21,18,33,36,106],
+  ["Jaipur","LEAD",75,560,580,1060,1139,2712],
+  ["Jaipur","BC",16,177,178,327,244,665],
+  ["Jaipur","VISIT",0,14,22,34,36,115],
+  ["Kochi","LEAD",66,418,317,700,677,1662],
+  ["Kochi","BC",24,157,104,244,164,446],
+  ["Kochi","VISIT",5,27,20,45,24,84],
+  ["Kolkata","LEAD",67,535,480,948,818,1990],
+  ["Kolkata","BC",8,119,106,219,163,402],
+  ["Kolkata","VISIT",2,14,13,26,26,70],
+  ["Lucknow","LEAD",126,911,819,1604,1458,3798],
+  ["Lucknow","BC",27,304,268,538,348,963],
+  ["Lucknow","VISIT",2,22,28,50,45,99],
+  ["Patna","LEAD",69,437,400,779,622,1605],
+  ["Patna","BC",15,111,111,208,159,360],
+  ["Patna","VISIT",0,8,9,16,14,33],
+  ["Surat","LEAD",55,410,385,742,681,1528],
+  ["Surat","BC",19,157,120,261,168,400],
+  ["Surat","VISIT",2,17,14,29,35,77],
+  ["Others","LEAD",720,3837,1282,4986,1607,4176],
+  ["Others","BC",91,664,596,1178,793,2422],
+  ["Others","VISIT",12,86,83,159,132,375],
+];
+
+// ─── DATA — GMB ───────────────────────────────────────────────────────────────
+const _SEED_G = [
+  ["Delhi NCR","LEAD",1444,10350,10354,19314,17400,42782],
+  ["Delhi NCR","LEAD CONNECTED",1084,7124,7194,13343,11877,29805],
+  ["Mumbai","LEAD",311,2299,2276,4328,3910,9220],
+  ["Mumbai","LEAD CONNECTED",246,1629,1636,3081,2737,6556],
+  ["Pune","LEAD",35,315,301,578,503,1251],
+  ["Pune","LEAD CONNECTED",33,241,251,459,387,975],
+  ["Bangalore","LEAD",224,1529,1597,2918,2686,6803],
+  ["Bangalore","LEAD CONNECTED",151,1057,1126,2035,1845,4709],
+  ["Hyderabad","LEAD",173,1338,1434,2536,2341,5850],
+  ["Hyderabad","LEAD CONNECTED",125,917,1014,1768,1660,4112],
+  ["Chennai","LEAD",175,1167,1332,2308,2410,5903],
+  ["Chennai","LEAD CONNECTED",118,846,928,1640,1750,4184],
+  ["Ahmedabad","LEAD",232,1496,1512,2764,2995,7274],
+  ["Ahmedabad","LEAD CONNECTED",186,1100,1144,2071,2185,5357],
+  ["Chandigarh","LEAD",38,327,366,634,797,1976],
+  ["Chandigarh","LEAD CONNECTED",29,245,286,491,559,1451],
+  ["Coimbatore","LEAD",5,91,115,193,166,420],
+  ["Coimbatore","LEAD CONNECTED",5,70,89,150,117,325],
+  ["Indore","LEAD",21,208,243,416,516,1340],
+  ["Indore","LEAD CONNECTED",17,165,189,327,373,983],
+  ["Jaipur","LEAD",11,112,132,217,180,558],
+  ["Jaipur","LEAD CONNECTED",12,84,99,162,129,427],
+  ["Kochi","LEAD",85,616,646,1176,1235,2924],
+  ["Kochi","LEAD CONNECTED",54,448,481,866,933,2190],
+  ["Kolkata","LEAD",9,161,162,307,159,425],
+  ["Kolkata","LEAD CONNECTED",8,116,115,223,114,315],
+  ["Lucknow","LEAD",56,298,309,524,421,1268],
+  ["Lucknow","LEAD CONNECTED",29,192,241,370,293,947],
+  ["Patna","LEAD",28,251,286,497,475,1359],
+  ["Patna","LEAD CONNECTED",26,197,219,387,354,984],
+  ["Surat","LEAD",14,82,98,173,173,431],
+  ["Surat","LEAD CONNECTED",12,72,78,144,129,343],
+  ["Others","LEAD",1885,12358,14598,24814,5436,38137],
+  ["Others","LEAD CONNECTED",1840,12145,14172,24270,5114,35993],
+];
+
+// ─── DATA — AFFILIATES ────────────────────────────────────────────────────────
+const _SEED_A = [
+  ["Delhi NCR","sessions",25,5005,5232,9524,8245,20317],
+  ["Delhi NCR","BC",10,217,164,358,170,513],
+  ["Delhi NCR","Visit",0,48,42,84,37,123],
+  ["Mumbai","sessions",16,4704,4579,8805,7923,18155],
+  ["Mumbai","BC",6,91,88,167,93,296],
+  ["Mumbai","Visit",2,20,22,38,29,88],
+  ["Pune","sessions",25,4526,4032,8165,5612,14016],
+  ["Pune","BC",8,113,87,188,86,260],
+  ["Pune","Visit",2,18,18,33,24,71],
+  ["Bangalore","sessions",34,6787,6239,12279,10913,25853],
+  ["Bangalore","BC",16,198,164,337,199,546],
+  ["Bangalore","Visit",1,34,33,62,69,155],
+  ["Hyderabad","sessions",25,5682,5207,10295,8477,20362],
+  ["Hyderabad","BC",11,120,118,222,150,370],
+  ["Hyderabad","Visit",0,19,33,49,38,97],
+  ["Chennai","sessions",26,4189,3932,7668,6021,14367],
+  ["Chennai","BC",12,68,85,141,111,293],
+  ["Chennai","Visit",7,21,27,42,27,79],
+  ["Ahmedabad","sessions",11,3612,3411,6600,5593,13164],
+  ["Ahmedabad","BC",4,92,79,161,109,255],
+  ["Ahmedabad","Visit",1,27,17,44,28,65],
+  ["Others","sessions",173,52379,50216,97592,71853,173509],
+  ["Others","BC",56,694,736,1342,780,2225],
+  ["Others","Visit",2,89,132,207,151,412],
+];
+
+// ─── DATA — ATM ───────────────────────────────────────────────────────────────
+const _SEED_T = [
+  ["Delhi NCR","LEAD",1160,6556,4389,10352,11739,27316],
+  ["Delhi NCR","BC",247,1428,942,2248,1703,4458],
+  ["Delhi NCR","VISIT",36,165,78,233,208,556],
+  ["Mumbai","LEAD",297,1807,2069,3620,3451,10257],
+  ["Mumbai","BC",16,179,145,301,153,476],
+  ["Mumbai","VISIT",4,28,14,39,38,92],
+  ["Pune","LEAD",38,194,150,329,284,645],
+  ["Pune","BC",47,299,166,450,297,756],
+  ["Pune","VISIT",5,51,18,69,45,108],
+  ["Bangalore","LEAD",13,285,237,497,470,1199],
+  ["Bangalore","BC",13,154,131,267,226,552],
+  ["Bangalore","VISIT",10,34,29,59,48,115],
+  ["Hyderabad","LEAD",75,413,227,601,329,827],
+  ["Hyderabad","BC",23,124,95,206,124,309],
+  ["Hyderabad","VISIT",1,11,16,23,25,48],
+  ["Chennai","LEAD",55,460,202,637,375,1055],
+  ["Chennai","BC",19,95,62,150,97,225],
+  ["Chennai","VISIT",8,43,12,55,30,57],
+  ["Ahmedabad","LEAD",692,3936,3071,6596,7939,18995],
+  ["Ahmedabad","BC",106,629,508,1066,781,2139],
+  ["Ahmedabad","VISIT",7,76,51,123,96,239],
+  ["Chandigarh","LEAD",13,70,52,115,200,421],
+  ["Chandigarh","BC",18,118,70,181,151,369],
+  ["Chandigarh","VISIT",2,20,4,24,36,58],
+  ["Indore","LEAD",13,99,75,163,303,599],
+  ["Indore","BC",27,161,111,258,229,532],
+  ["Indore","VISIT",2,16,18,30,40,84],
+  ["Jaipur","LEAD",22,121,106,215,296,681],
+  ["Jaipur","BC",29,161,148,289,213,567],
+  ["Jaipur","VISIT",4,12,15,27,21,67],
+  ["Kochi","LEAD",3,6,8,14,8,30],
+  ["Kochi","BC",4,19,10,29,18,42],
+  ["Kochi","VISIT",2,2,0,2,5,7],
+  ["Kolkata","LEAD",8,41,38,77,103,240],
+  ["Kolkata","BC",12,63,33,93,74,204],
+  ["Kolkata","VISIT",1,6,1,7,7,16],
+  ["Lucknow","LEAD",71,615,468,1018,778,2629],
+  ["Lucknow","BC",128,826,551,1319,627,2280],
+  ["Lucknow","VISIT",11,94,54,142,60,214],
+  ["Patna","LEAD",71,212,116,314,240,655],
+  ["Patna","BC",58,181,131,298,193,532],
+  ["Patna","VISIT",2,13,5,18,9,42],
+  ["Surat","LEAD",17,63,61,115,106,330],
+  ["Surat","BC",18,96,76,164,110,311],
+  ["Surat","VISIT",2,8,8,16,21,63],
+  ["Others","LEAD",36,259,243,457,617,1528],
+  ["Others","BC",20,114,105,209,206,459],
+  ["Others","VISIT",0,14,15,27,57,114],
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let activeChannel = 'c';
+let cityFilter = 'ALL';
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n == null || n === 0) return '<span class="zero-val">—</span>';
+  if (n >= 100000) return (n/100000).toFixed(1) + 'L';
+  if (n >= 1000)   return (n/1000).toFixed(1) + 'K';
+  return n.toLocaleString('en-IN');
+}
+
+function pctCell(num, denom) {
+  if (!denom || denom === 0) return '<span class="zero-val">—</span>';
+  const p = (num / denom * 100).toFixed(1);
+  return `<span style="color:var(--text-secondary);font-weight:600">${p}%</span>`;
+}
+
+function vsLMTD(mtd, lmtd) {
+  if (!lmtd) return '<span class="zero-val">—</span>';
+  const p = ((mtd - lmtd) / lmtd * 100).toFixed(1);
+  const v = parseFloat(p);
+  const cls = v > 5 ? 'pct-pos' : v < -5 ? 'pct-neg' : 'pct-warn';
+  const arrow = v >= 0 ? '↑' : '↓';
+  return `<span class="${cls}">${arrow}${Math.abs(p)}%</span>`;
+}
+
+// Sort cities: priority first, then alphabetical
+function sortedCities(data) {
+  const cities = [...new Set(data.map(r => r[0]))];
+  return cities.sort((a, b) => {
+    const oa = cityOrder(a), ob = cityOrder(b);
+    if (oa !== ob) return oa - ob;
+    if (a === 'Others') return 1;
+    if (b === 'Others') return -1;
+    return a.localeCompare(b);
+  });
+}
+
+// ─── KPI CARDS ───────────────────────────────────────────────────────────────
+function updateKPIs() {
+  const cf = cityFilter;
+  const f = r => cf === 'ALL' || r[0] === cf;
+
+  const sum = (data, metric, col) =>
+    data.filter(r => r[1] === metric && f(r)).reduce((s,r) => s + r[col], 0);
+
+  const cLead   = sum(RAW_C, 'LEAD', 5);
+  const cLeadD1 = sum(RAW_C, 'LEAD', 2);
+  const cLMTD   = sum(RAW_C, 'LEAD', 6);
+  const gLead   = sum(RAW_G, 'LEAD', 5);
+  const gLeadD1 = sum(RAW_G, 'LEAD', 2);
+  const gLMTD   = sum(RAW_G, 'LEAD', 6);
+  const aSess   = sum(RAW_A, 'sessions', 5);
+  const aSessD1 = sum(RAW_A, 'sessions', 2);
+  const aLMTD   = sum(RAW_A, 'sessions', 6);
+  const bcTotal = sum(RAW_C, 'BC', 5) + sum(RAW_A, 'BC', 5);
+  const bcLMTD  = sum(RAW_C, 'BC', 6) + sum(RAW_A, 'BC', 6);
+
+  const setKPI = (valId, d1Id, pctId, mtd, d1, lmtd) => {
+    document.getElementById(valId).textContent = mtd.toLocaleString('en-IN');
+    document.getElementById(d1Id).textContent  = d1.toLocaleString('en-IN');
+    if (lmtd) {
+      const p = ((mtd-lmtd)/lmtd*100).toFixed(1);
+      const el = document.getElementById(pctId);
+      el.textContent = (parseFloat(p)>=0?'↑':'↓') + Math.abs(p) + '% vs LMTD';
+    }
+  };
+  setKPI('h-c-lead','h-c-lead-d1','h-c-pct', cLead, cLeadD1, cLMTD);
+  setKPI('h-g-lead','h-g-lead-d1','h-g-pct', gLead, gLeadD1, gLMTD);
+  setKPI('h-a-sess','h-a-sess-d1','h-a-pct', aSess, aSessD1, aLMTD);
+
+  document.getElementById('h-bc-total').textContent = bcTotal.toLocaleString('en-IN');
+  if (bcLMTD) {
+    const p = ((bcTotal-bcLMTD)/bcLMTD*100).toFixed(1);
+    const el = document.getElementById('h-bc-pct');
+    el.textContent = (parseFloat(p)>=0?'↑':'↓') + Math.abs(p) + '% vs LMTD';
+    el.className = 'hero-pct ' + (parseFloat(p)>=0?'up':'down');
+  }
+}
+
+// ─── CLASSIFIED TABLE ─────────────────────────────────────────────────────────
+// Metrics: LEAD, BC, VISIT, Lead→BC%, Lead→Visit%
+function renderClassified() {
+  const cf = cityFilter;
+  const data = RAW_C.filter(r => cf === 'ALL' || r[0] === cf);
+  const cities = sortedCities(data);
+
+  // Build lookup: city → metric → row
+  const lkp = {};
+  data.forEach(r => {
+    if (!lkp[r[0]]) lkp[r[0]] = {};
+    lkp[r[0]][r[1]] = r;
+  });
+
+  const metrics = ['LEAD','BC','VISIT'];
+  const metricLabel = { 'LEAD':'Lead', 'BC':'BC', 'VISIT':'Visit' };
+
+  let html = '';
+  let totals = {}; // metric → [D1,L7D,LL7D,MTD,LMTD,LM]
+  metrics.forEach(m => { totals[m] = [0,0,0,0,0,0]; });
+
+  // separator between priority and others
+  let addedSep = false;
+
+  cities.forEach(city => {
+    if (!isPriority(city) && !addedSep && cf === 'ALL') {
+      html += `<tr class="sep-row"><td colspan="9">Other Cities</td></tr>`;
+      addedSep = true;
+    }
+    const cityCls = isPriority(city) ? 'city-priority city-star' : '';
+
+    metrics.forEach(m => {
+      const r = lkp[city] && lkp[city][m];
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = r ? r.slice(2) : [0,0,0,0,0,0];
+      if (r) { for(let i=0;i<6;i++) totals[m][i] += r[i+2]; }
+
+      html += `<tr${isPriority(city) ? ' class="priority"' : ''}>
+        <td class="${cityCls}">${city}</td>
+        <td>${metricLabel[m]}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
+      </tr>`;
+    });
+
+    // Derived rows for this city
+    const lead = (lkp[city]&&lkp[city]['LEAD']) ? lkp[city]['LEAD'] : null;
+    const bc   = (lkp[city]&&lkp[city]['BC'])   ? lkp[city]['BC']   : null;
+    const vis  = (lkp[city]&&lkp[city]['VISIT']) ? lkp[city]['VISIT']: null;
+
+    if (lead && bc) {
+      html += `<tr style="background:rgba(24,96,240,0.02)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#7C3AED;font-weight:700;font-size:11px">Lead → BC %</td>
+        <td>${pctCell(bc[2],lead[2])}</td><td>${pctCell(bc[3],lead[3])}</td><td>${pctCell(bc[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(bc[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(bc[6],lead[6])}</td><td>${pctCell(bc[7],lead[7])}</td>
+      </tr>`;
+    }
+    if (lead && vis) {
+      html += `<tr style="background:rgba(24,96,240,0.02)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#7C3AED;font-weight:700;font-size:11px">Lead → Visit %</td>
+        <td>${pctCell(vis[2],lead[2])}</td><td>${pctCell(vis[3],lead[3])}</td><td>${pctCell(vis[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(vis[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(vis[6],lead[6])}</td><td>${pctCell(vis[7],lead[7])}</td>
+      </tr>`;
+    }
+  });
+
+  // Total row
+  if (cf === 'ALL') {
+    metrics.forEach(m => {
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = totals[m];
+      html += `<tr class="total-row">
+        <td>TOTAL</td><td>${metricLabel[m]}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
+      </tr>`;
+    });
+    const [ld1,ll7d_,lll7d,lmtd_v,llmtd,llm] = totals['LEAD'];
+    const [bd1,bl7d,bll7d,bmtd,blmtd,blm]   = totals['BC'];
+    const [vd1,vl7d,vll7d,vmtd,vlmtd,vlm]   = totals['VISIT'];
+    html += `<tr class="total-row" style="background:rgba(124,58,237,0.05)">
+      <td>TOTAL</td><td style="color:#7C3AED;font-weight:700">Lead → BC %</td>
+      <td>${pctCell(bd1,ld1)}</td><td>${pctCell(bl7d,totals['LEAD'][1])}</td><td>${pctCell(bll7d,totals['LEAD'][2])}</td>
+      <td class="col-sep">${pctCell(bmtd,lmtd_v)}</td><td>—</td>
+      <td>${pctCell(blmtd,llmtd)}</td><td>${pctCell(blm,llm)}</td>
+    </tr>`;
+    html += `<tr class="total-row" style="background:rgba(124,58,237,0.05)">
+      <td>TOTAL</td><td style="color:#7C3AED;font-weight:700">Lead → Visit %</td>
+      <td>${pctCell(vd1,ld1)}</td><td>${pctCell(vl7d,totals['LEAD'][1])}</td><td>${pctCell(vll7d,totals['LEAD'][2])}</td>
+      <td class="col-sep">${pctCell(vmtd,lmtd_v)}</td><td>—</td>
+      <td>${pctCell(vlmtd,llmtd)}</td><td>${pctCell(vlm,llm)}</td>
+    </tr>`;
+  }
+
+  document.getElementById('tbody-c').innerHTML = html;
+}
+
+// ─── GMB TABLE ────────────────────────────────────────────────────────────────
+// Metrics: LEAD, LEAD CONNECTED, Lead→Connected%
+function renderGMB() {
+  const cf = cityFilter;
+  const data = RAW_G.filter(r => cf === 'ALL' || r[0] === cf);
+  const cities = sortedCities(data);
+
+  const lkp = {};
+  data.forEach(r => {
+    if (!lkp[r[0]]) lkp[r[0]] = {};
+    lkp[r[0]][r[1]] = r;
+  });
+
+  let html = '';
+  let tLead = [0,0,0,0,0,0], tLC = [0,0,0,0,0,0];
+  let addedSep = false;
+
+  cities.forEach(city => {
+    if (!isPriority(city) && !addedSep && cf === 'ALL') {
+      html += `<tr class="sep-row"><td colspan="9">Other Cities</td></tr>`;
+      addedSep = true;
+    }
+    const cityCls = isPriority(city) ? 'city-priority city-star' : '';
+    const lead = lkp[city] && lkp[city]['LEAD'];
+    const lc   = lkp[city] && lkp[city]['LEAD CONNECTED'];
+
+    if (lead) { for(let i=0;i<6;i++) tLead[i] += lead[i+2]; }
+    if (lc)   { for(let i=0;i<6;i++) tLC[i]   += lc[i+2]; }
+
+    [[lead,'Lead'],[lc,'Lead Connected']].forEach(([r,label]) => {
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = r ? r.slice(2) : [0,0,0,0,0,0];
+      html += `<tr${isPriority(city)?' class="priority"':''}>
+        <td class="${cityCls}">${city}</td><td>${label}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
+      </tr>`;
+    });
+
+    if (lead && lc) {
+      html += `<tr style="background:rgba(26,107,74,0.03)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#1A6B4A;font-weight:700;font-size:11px">Lead → Connected %</td>
+        <td>${pctCell(lc[2],lead[2])}</td><td>${pctCell(lc[3],lead[3])}</td><td>${pctCell(lc[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(lc[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(lc[6],lead[6])}</td><td>${pctCell(lc[7],lead[7])}</td>
+      </tr>`;
+    }
+  });
+
+  if (cf === 'ALL') {
+    [['LEAD',tLead,'Lead'],['LEAD CONNECTED',tLC,'Lead Connected']].forEach(([,t,label]) => {
+      html += `<tr class="total-row"><td>TOTAL</td><td>${label}</td>
+        <td>${fmt(t[0])}</td><td>${fmt(t[1])}</td><td>${fmt(t[2])}</td>
+        <td class="col-sep">${fmt(t[3])}</td><td>${vsLMTD(t[3],t[4])}</td>
+        <td>${fmt(t[4])}</td><td>${fmt(t[5])}</td></tr>`;
+    });
+    html += `<tr class="total-row" style="background:rgba(26,107,74,0.05)">
+      <td>TOTAL</td><td style="color:#1A6B4A;font-weight:700">Lead → Connected %</td>
+      <td>${pctCell(tLC[0],tLead[0])}</td><td>${pctCell(tLC[1],tLead[1])}</td><td>${pctCell(tLC[2],tLead[2])}</td>
+      <td class="col-sep">${pctCell(tLC[3],tLead[3])}</td><td>—</td>
+      <td>${pctCell(tLC[4],tLead[4])}</td><td>${pctCell(tLC[5],tLead[5])}</td>
+    </tr>`;
+  }
+
+  document.getElementById('tbody-g').innerHTML = html;
+}
+
+// ─── AFFILIATES TABLE ─────────────────────────────────────────────────────────
+// Metrics: sessions, BC, Visit, BC→Visit%
+function renderAffiliates() {
+  const cf = cityFilter;
+  const data = RAW_A.filter(r => cf === 'ALL' || r[0] === cf);
+  const cities = sortedCities(data);
+
+  const lkp = {};
+  data.forEach(r => {
+    if (!lkp[r[0]]) lkp[r[0]] = {};
+    lkp[r[0]][r[1]] = r;
+  });
+
+  const metrics = ['sessions','BC','Visit'];
+  const mLabel  = { sessions:'Lead', BC:'BC', Visit:'Visit' };
+  let totals = {}; metrics.forEach(m => totals[m] = [0,0,0,0,0,0]);
+  let html = '';
+  let addedSep = false;
+
+  cities.forEach(city => {
+    if (!isPriority(city) && !addedSep && cf === 'ALL') {
+      html += `<tr class="sep-row"><td colspan="9">Other Cities</td></tr>`;
+      addedSep = true;
+    }
+    const cityCls = isPriority(city) ? 'city-priority city-star' : '';
+
+    metrics.forEach(m => {
+      const r = lkp[city] && lkp[city][m];
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = r ? r.slice(2) : [0,0,0,0,0,0];
+      if (r) { for(let i=0;i<6;i++) totals[m][i] += r[i+2]; }
+      html += `<tr${isPriority(city)?' class="priority"':''}>
+        <td class="${cityCls}">${city}</td><td>${mLabel[m]}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
+      </tr>`;
+    });
+
+    // BC → Visit %
+    const bc  = lkp[city] && lkp[city]['BC'];
+    const vis = lkp[city] && lkp[city]['Visit'];
+    if (bc && vis) {
+      html += `<tr style="background:rgba(124,58,237,0.03)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#7C3AED;font-weight:700;font-size:11px">BC → Visit %</td>
+        <td>${pctCell(vis[2],bc[2])}</td><td>${pctCell(vis[3],bc[3])}</td><td>${pctCell(vis[4],bc[4])}</td>
+        <td class="col-sep">${pctCell(vis[5],bc[5])}</td>
+        <td>—</td><td>${pctCell(vis[6],bc[6])}</td><td>${pctCell(vis[7],bc[7])}</td>
+      </tr>`;
+    }
+  });
+
+  if (cf === 'ALL') {
+    metrics.forEach(m => {
+      const t = totals[m];
+      html += `<tr class="total-row"><td>TOTAL</td><td>${mLabel[m]}</td>
+        <td>${fmt(t[0])}</td><td>${fmt(t[1])}</td><td>${fmt(t[2])}</td>
+        <td class="col-sep">${fmt(t[3])}</td><td>${vsLMTD(t[3],t[4])}</td>
+        <td>${fmt(t[4])}</td><td>${fmt(t[5])}</td></tr>`;
+    });
+    const bc = totals['BC'], vis = totals['Visit'];
+    html += `<tr class="total-row" style="background:rgba(124,58,237,0.05)">
+      <td>TOTAL</td><td style="color:#7C3AED;font-weight:700">BC → Visit %</td>
+      <td>${pctCell(vis[0],bc[0])}</td><td>${pctCell(vis[1],bc[1])}</td><td>${pctCell(vis[2],bc[2])}</td>
+      <td class="col-sep">${pctCell(vis[3],bc[3])}</td><td>—</td>
+      <td>${pctCell(vis[4],bc[4])}</td><td>${pctCell(vis[5],bc[5])}</td>
+    </tr>`;
+  }
+
+  document.getElementById('tbody-a').innerHTML = html;
+}
+
+// ─── ATM TABLE ────────────────────────────────────────────────────────────────
+// Metrics: LEAD, BC, VISIT, Lead→BC%, Lead→Visit%
+function renderATM() {
+  const cf = cityFilter;
+  const data = RAW_T.filter(r => cf === 'ALL' || r[0] === cf);
+  const cities = sortedCities(data);
+
+  const lkp = {};
+  data.forEach(r => {
+    if (!lkp[r[0]]) lkp[r[0]] = {};
+    lkp[r[0]][r[1]] = r;
+  });
+
+  const metrics = ['LEAD','BC','VISIT'];
+  const metricLabel = { 'LEAD':'Lead', 'BC':'BC', 'VISIT':'Visit' };
+  let totals = {}; metrics.forEach(m => { totals[m] = [0,0,0,0,0,0]; });
+  let html = '';
+  let addedSep = false;
+
+  cities.forEach(city => {
+    if (!isPriority(city) && !addedSep && cf === 'ALL') {
+      html += `<tr class="sep-row"><td colspan="9">Other Cities</td></tr>`;
+      addedSep = true;
+    }
+    const cityCls = isPriority(city) ? 'city-priority city-star' : '';
+
+    metrics.forEach(m => {
+      const r = lkp[city] && lkp[city][m];
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = r ? r.slice(2) : [0,0,0,0,0,0];
+      if (r) { for(let i=0;i<6;i++) totals[m][i] += r[i+2]; }
+      html += `<tr${isPriority(city)?' class="priority"':''}>
+        <td class="${cityCls}">${city}</td>
+        <td>${metricLabel[m]}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
+      </tr>`;
+    });
+
+    const lead = lkp[city] && lkp[city]['LEAD'];
+    const bc   = lkp[city] && lkp[city]['BC'];
+    const vis  = lkp[city] && lkp[city]['VISIT'];
+
+    if (lead && bc) {
+      html += `<tr style="background:rgba(255,159,10,0.03)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#CC7A00;font-weight:700;font-size:11px">Lead → BC %</td>
+        <td>${pctCell(bc[2],lead[2])}</td><td>${pctCell(bc[3],lead[3])}</td><td>${pctCell(bc[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(bc[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(bc[6],lead[6])}</td><td>${pctCell(bc[7],lead[7])}</td>
+      </tr>`;
+    }
+    if (lead && vis) {
+      html += `<tr style="background:rgba(255,159,10,0.03)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#CC7A00;font-weight:700;font-size:11px">Lead → Visit %</td>
+        <td>${pctCell(vis[2],lead[2])}</td><td>${pctCell(vis[3],lead[3])}</td><td>${pctCell(vis[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(vis[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(vis[6],lead[6])}</td><td>${pctCell(vis[7],lead[7])}</td>
+      </tr>`;
+    }
+  });
+
+  if (cf === 'ALL') {
+    metrics.forEach(m => {
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = totals[m];
+      html += `<tr class="total-row"><td>TOTAL</td><td>${metricLabel[m]}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td></tr>`;
+    });
+    const [ld1,ll7d_,lll7d,lmtd_v,llmtd,llm] = totals['LEAD'];
+    const [bd1,bl7d,bll7d,bmtd,blmtd,blm]   = totals['BC'];
+    const [vd1,vl7d,vll7d,vmtd,vlmtd,vlm]   = totals['VISIT'];
+    html += `<tr class="total-row" style="background:rgba(255,159,10,0.07)">
+      <td>TOTAL</td><td style="color:#CC7A00;font-weight:700">Lead → BC %</td>
+      <td>${pctCell(bd1,ld1)}</td><td>${pctCell(bl7d,totals['LEAD'][1])}</td><td>${pctCell(bll7d,totals['LEAD'][2])}</td>
+      <td class="col-sep">${pctCell(bmtd,lmtd_v)}</td><td>—</td>
+      <td>${pctCell(blmtd,llmtd)}</td><td>${pctCell(blm,llm)}</td>
+    </tr>`;
+    html += `<tr class="total-row" style="background:rgba(255,159,10,0.07)">
+      <td>TOTAL</td><td style="color:#CC7A00;font-weight:700">Lead → Visit %</td>
+      <td>${pctCell(vd1,ld1)}</td><td>${pctCell(vl7d,totals['LEAD'][1])}</td><td>${pctCell(vll7d,totals['LEAD'][2])}</td>
+      <td class="col-sep">${pctCell(vmtd,lmtd_v)}</td><td>—</td>
+      <td>${pctCell(vlmtd,llmtd)}</td><td>${pctCell(vlm,llm)}</td>
+    </tr>`;
+  }
+
+  document.getElementById('tbody-t').innerHTML = html;
+}
+
+// ─── ALL CHANNELS TABLE ───────────────────────────────────────────────────────
+function renderAll() {
+  const cf = cityFilter;
+  const combined = [
+    ...RAW_C.filter(r => r[1]==='LEAD').map(r => [r[0],'Classified',...r.slice(2)]),
+    ...RAW_G.filter(r => r[1]==='LEAD').map(r => [r[0],'GMB',...r.slice(2)]),
+    ...RAW_A.filter(r => r[1]==='sessions').map(r => [r[0],'Affiliates',...r.slice(2)]),
+    ...RAW_T.filter(r => r[1]==='LEAD').map(r => [r[0],'ATM',...r.slice(2)]),
+  ].filter(r => cf === 'ALL' || r[0] === cf);
+
+  const cities = [...new Set(combined.map(r=>r[0]))].sort((a,b) => {
+    const oa=cityOrder(a), ob=cityOrder(b);
+    if (oa!==ob) return oa-ob;
+    if(a==='Others') return 1; if(b==='Others') return -1;
+    return a.localeCompare(b);
+  });
+
+  const colors = { Classified:'#1860F0', GMB:'#1A6B4A', Affiliates:'#7C3AED', ATM:'#CC7A00' };
+  let html = '';
+  let addedSep = false;
+
+  cities.forEach(city => {
+    if (!isPriority(city) && !addedSep && cf === 'ALL') {
+      html += `<tr class="sep-row"><td colspan="9">Other Cities</td></tr>`;
+      addedSep = true;
+    }
+    const cityCls = isPriority(city) ? 'city-priority city-star' : '';
+    ['Classified','GMB','Affiliates','ATM'].forEach(ch => {
+      const r = combined.find(x => x[0]===city && x[1]===ch);
+      if (!r) return;
+      const [,,d1,l7d,ll7d,mtd,lmtd,lm] = r;
+      html += `<tr${isPriority(city)?' class="priority"':''}>
+        <td class="${cityCls}">${city}</td>
+        <td style="color:${colors[ch]};font-weight:700">${ch}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td>
+        <td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
+      </tr>`;
+    });
+  });
+
+  document.getElementById('tbody-all').innerHTML = html || '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-tertiary)">No data</td></tr>';
+}
+
+// ─── CHANNEL SWITCH ───────────────────────────────────────────────────────────
+function showChannel(ch) {
+  activeChannel = ch;
+  ['c','g','a','t','all'].forEach(x => {
+    document.getElementById('panel-'+x).style.display = x===ch ? 'block' : 'none';
+    const btn = document.getElementById('tab-'+x);
+    btn.className = 'tab-btn' + (x===ch ? ` tab-active-${x}` : '');
+  });
+  renderPage();
+}
+
+function applyFilters() {
+  cityFilter = document.getElementById('cityFilter').value;
+  renderPage();
+}
+
+function renderPage() {
+  updateKPIs();
+  renderClassified();
+  renderGMB();
+  renderAffiliates();
+  renderATM();
+  renderAll();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadChannelData(renderPage);
+</script>
+</body>
+</html>
