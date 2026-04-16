@@ -191,9 +191,10 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
       <span class="brand-divider"></span>
       <span>Channel Intelligence</span>
     </div>
-    <div class="brand-sub">Classified · GMB · Affiliates — D-1: Apr 13, 2026</div>
+    <div class="brand-sub" id="nav-subtitle">Classified · GMB · Affiliates · ATM</div>
   </div>
   <div class="nav-controls">
+    <select class="pill-select" id="dateFilter" onchange="applyFilters()"></select>
     <select class="pill-select" id="cityFilter" onchange="applyFilters()">
       <option value="ALL">All Cities</option>
       <option value="Delhi NCR">Delhi NCR</option>
@@ -214,9 +215,9 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
       <option value="Surat">Surat</option>
       <option value="Others">Others</option>
     </select>
-    <div class="status-pill">
+    <div class="status-pill" id="refresh-pill" title="">
       <span class="status-dot"></span>
-      D-1 · Apr 13
+      <span id="refresh-label">Loading…</span>
     </div>
   </div>
 </nav>
@@ -277,13 +278,13 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
             <tr>
               <th>City</th>
               <th>Metric</th>
-              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
-              <th>L7D<span class="th-date">7–13 Apr</span></th>
-              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
-              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th class="hl" data-window="D-1">D-1<span class="th-date">—</span></th>
+              <th data-window="L7D">L7D<span class="th-date">—</span></th>
+              <th data-window="LL7D">LL7D<span class="th-date">—</span></th>
+              <th class="col-sep hl" data-window="MTD">MTD<span class="th-date">—</span></th>
               <th>vs LMTD</th>
-              <th>LMTD<span class="th-date">1–13 Mar</span></th>
-              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+              <th data-window="LMTD">LMTD<span class="th-date">—</span></th>
+              <th data-window="LM">Last Month<span class="th-date">—</span></th>
             </tr>
           </thead>
           <tbody id="tbody-c"></tbody>
@@ -309,13 +310,13 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
             <tr>
               <th>City</th>
               <th>Metric</th>
-              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
-              <th>L7D<span class="th-date">7–13 Apr</span></th>
-              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
-              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th class="hl" data-window="D-1">D-1<span class="th-date">—</span></th>
+              <th data-window="L7D">L7D<span class="th-date">—</span></th>
+              <th data-window="LL7D">LL7D<span class="th-date">—</span></th>
+              <th class="col-sep hl" data-window="MTD">MTD<span class="th-date">—</span></th>
               <th>vs LMTD</th>
-              <th>LMTD<span class="th-date">1–13 Mar</span></th>
-              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+              <th data-window="LMTD">LMTD<span class="th-date">—</span></th>
+              <th data-window="LM">Last Month<span class="th-date">—</span></th>
             </tr>
           </thead>
           <tbody id="tbody-g"></tbody>
@@ -341,13 +342,13 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
             <tr>
               <th>City</th>
               <th>Metric</th>
-              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
-              <th>L7D<span class="th-date">7–13 Apr</span></th>
-              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
-              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th class="hl" data-window="D-1">D-1<span class="th-date">—</span></th>
+              <th data-window="L7D">L7D<span class="th-date">—</span></th>
+              <th data-window="LL7D">LL7D<span class="th-date">—</span></th>
+              <th class="col-sep hl" data-window="MTD">MTD<span class="th-date">—</span></th>
               <th>vs LMTD</th>
-              <th>LMTD<span class="th-date">1–13 Mar</span></th>
-              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+              <th data-window="LMTD">LMTD<span class="th-date">—</span></th>
+              <th data-window="LM">Last Month<span class="th-date">—</span></th>
             </tr>
           </thead>
           <tbody id="tbody-a"></tbody>
@@ -372,13 +373,13 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
             <tr>
               <th>City</th>
               <th>Metric</th>
-              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
-              <th>L7D<span class="th-date">7–13 Apr</span></th>
-              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
-              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th class="hl" data-window="D-1">D-1<span class="th-date">—</span></th>
+              <th data-window="L7D">L7D<span class="th-date">—</span></th>
+              <th data-window="LL7D">LL7D<span class="th-date">—</span></th>
+              <th class="col-sep hl" data-window="MTD">MTD<span class="th-date">—</span></th>
               <th>vs LMTD</th>
-              <th>LMTD<span class="th-date">1–13 Mar</span></th>
-              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+              <th data-window="LMTD">LMTD<span class="th-date">—</span></th>
+              <th data-window="LM">Last Month<span class="th-date">—</span></th>
             </tr>
           </thead>
           <tbody id="tbody-t"></tbody>
@@ -402,13 +403,13 @@ td:nth-child(2) { text-align: left; font-weight: 600; color: var(--text-primary)
             <tr>
               <th>City</th>
               <th>Channel</th>
-              <th class="hl">D-1<span class="th-date">13 Apr</span></th>
-              <th>L7D<span class="th-date">7–13 Apr</span></th>
-              <th>LL7D<span class="th-date">31 Mar–6 Apr</span></th>
-              <th class="col-sep hl">MTD<span class="th-date">1–13 Apr</span></th>
+              <th class="hl" data-window="D-1">D-1<span class="th-date">—</span></th>
+              <th data-window="L7D">L7D<span class="th-date">—</span></th>
+              <th data-window="LL7D">LL7D<span class="th-date">—</span></th>
+              <th class="col-sep hl" data-window="MTD">MTD<span class="th-date">—</span></th>
               <th>vs LMTD</th>
-              <th>LMTD<span class="th-date">1–13 Mar</span></th>
-              <th>Last Month<span class="th-date">1–31 Mar</span></th>
+              <th data-window="LMTD">LMTD<span class="th-date">—</span></th>
+              <th data-window="LM">Last Month<span class="th-date">—</span></th>
             </tr>
           </thead>
           <tbody id="tbody-all"></tbody>
@@ -431,39 +432,121 @@ function isPriority(city) { return PRIORITY.includes(city); }
 
 // ─── DATA — loaded from channels_data.csv ────────────────────────────────────
 // CSV schema: run_date, city, channel, metric, D1, L7D, LL7D, MTD, LMTD, LM
-// Converted to tuple arrays: [city, metric, D1, L7D, LL7D, MTD, LMTD, LM]
+// All rows retained; filtered per selected run_date into RAW_C/G/A/T on demand
+let ALL_ROWS = [];
+let CSV_FETCHED_AT = null;     // Date when we pulled the CSV
 let RAW_C = [], RAW_G = [], RAW_A = [], RAW_T = [];
+let selectedDate = null;        // Currently displayed run_date
+
+function populateDateDropdown(dates, current) {
+  const sel = document.getElementById('dateFilter');
+  // Latest first
+  sel.innerHTML = dates.slice().reverse().map((d,i) => {
+    const label = formatDateLabel(d) + (i === 0 ? ' · Latest' : '');
+    return `<option value="${d}"${d === current ? ' selected' : ''}>${label}</option>`;
+  }).join('');
+}
+
+function rebuildForSelectedDate() {
+  const fresh = ALL_ROWS.filter(r => r.run_date === selectedDate);
+  const toTuple = r => [r.city, r.metric, r.D1, r.L7D, r.LL7D, r.MTD, r.LMTD, r.LM];
+  RAW_C = fresh.filter(r => r.channel === 'Classified').map(toTuple);
+  RAW_G = fresh.filter(r => r.channel === 'GMB').map(toTuple);
+  RAW_A = fresh.filter(r => r.channel === 'Affiliates').map(toTuple);
+  RAW_T = fresh.filter(r => r.channel === 'ATM').map(toTuple);
+  updateDateHeaders(selectedDate);
+  updateRefreshLabel();
+}
 
 function loadChannelData(callback) {
-  const CSV_URL = '../data/channels_data.csv';
+  const CSV_URL = '../data/channels_data.csv?t=' + Date.now();   // cache-bust
+  CSV_FETCHED_AT = new Date();
   Papa.parse(CSV_URL, {
     download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
     complete: function(results) {
-      const rows = results.data;
-      // Use only the latest run_date
-      const dates = [...new Set(rows.map(r => r.run_date))].sort();
-      const latest = dates[dates.length - 1];
-      const fresh = rows.filter(r => r.run_date === latest);
-
-      const toTuple = r => [r.city, r.metric, r.D1, r.L7D, r.LL7D, r.MTD, r.LMTD, r.LM];
-      RAW_C = fresh.filter(r => r.channel === 'Classified').map(toTuple);
-      RAW_G = fresh.filter(r => r.channel === 'GMB').map(toTuple);
-      RAW_A = fresh.filter(r => r.channel === 'Affiliates').map(toTuple);
-      RAW_T = fresh.filter(r => r.channel === 'ATM').map(toTuple);
-
-      // Update nav badge with latest run date
-      const badge = document.getElementById('last-updated');
-      if (badge) badge.textContent = 'Data: ' + latest;
-
+      ALL_ROWS = results.data.filter(r => r && r.run_date);
+      const dates = [...new Set(ALL_ROWS.map(r => r.run_date))].sort();
+      if (!dates.length) { console.warn('channels_data.csv empty'); callback(); return; }
+      selectedDate = dates[dates.length - 1];
+      populateDateDropdown(dates, selectedDate);
+      rebuildForSelectedDate();
       callback();
     },
     error: function() {
-      // Fallback: render with empty data (shows — placeholders)
       console.warn('channels_data.csv not found — showing empty state');
       callback();
     }
   });
 }
+
+// ─── DATE HELPERS ────────────────────────────────────────────────────────────
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function parseDate(s) { return new Date(s + 'T00:00:00'); }
+function formatDateLabel(s) {
+  const d = parseDate(s);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtShort(d) { return `${d.getDate()} ${MONTHS[d.getMonth()]}`; }
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d) { return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+/**
+ * Compute the same date windows the pipeline uses and fill them into
+ * every <span class="th-date"> with a matching data-window attribute on its
+ * parent <th>. run_date corresponds to D1 (yesterday from run perspective).
+ */
+function updateDateHeaders(runDateStr) {
+  const d1 = parseDate(runDateStr);
+  const mtdStart = startOfMonth(d1);
+  const lmEnd    = addDays(mtdStart, -1);
+  const lmStart  = startOfMonth(lmEnd);
+  const lmtdEnd  = new Date(lmEnd.getFullYear(), lmEnd.getMonth(), Math.min(d1.getDate(), lmEnd.getDate()));
+  const l7dEnd   = d1;
+  const l7dStart = addDays(d1, -6);
+  const ll7dEnd  = addDays(l7dStart, -1);
+  const ll7dStart= addDays(ll7dEnd, -6);
+
+  const windows = {
+    'D-1':  fmtShort(d1),
+    'L7D':  `${fmtShort(l7dStart)}–${fmtShort(l7dEnd)}`,
+    'LL7D': `${fmtShort(ll7dStart)}–${fmtShort(ll7dEnd)}`,
+    'MTD':  `${fmtShort(mtdStart)}–${fmtShort(d1)}`,
+    'LMTD': `${fmtShort(lmStart)}–${fmtShort(lmtdEnd)}`,
+    'LM':   `${fmtShort(lmStart)}–${fmtShort(lmEnd)}`,
+  };
+
+  // Update every <th> with data-window that we know about
+  document.querySelectorAll('th[data-window]').forEach(th => {
+    const key = th.getAttribute('data-window');
+    const span = th.querySelector('.th-date');
+    if (span && windows[key]) span.textContent = windows[key];
+  });
+
+  // Update nav subtitle too
+  const sub = document.getElementById('nav-subtitle');
+  if (sub) sub.textContent = `Classified · GMB · Affiliates · ATM — D-1: ${formatDateLabel(runDateStr)}`;
+}
+
+function updateRefreshLabel() {
+  const pill  = document.getElementById('refresh-pill');
+  const label = document.getElementById('refresh-label');
+  if (!label || !CSV_FETCHED_AT) return;
+  const now = new Date();
+  const diffMs = now - CSV_FETCHED_AT;
+  const diffMin = Math.round(diffMs / 60000);
+  let rel;
+  if (diffMin < 1)       rel = 'just now';
+  else if (diffMin < 60) rel = `${diffMin} min ago`;
+  else if (diffMin < 1440) rel = `${Math.round(diffMin/60)} h ago`;
+  else                   rel = `${Math.round(diffMin/1440)} d ago`;
+  const abs = CSV_FETCHED_AT.toLocaleString('en-IN', {
+    day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hour12:true
+  });
+  label.textContent = `Refreshed ${rel}`;
+  pill.title = `Page loaded at ${abs}`;
+}
+setInterval(updateRefreshLabel, 30000);   // refresh the relative time every 30s
 
 // ─── LEGACY SEED (kept for reference, no longer used directly) ────────────────
 // Columns: [city, metric, D1, L7D, LL7D, MTD, LMTD, LM]
@@ -824,7 +907,7 @@ function renderClassified() {
 }
 
 // ─── GMB TABLE ────────────────────────────────────────────────────────────────
-// Metrics: LEAD, LEAD CONNECTED, Lead→Connected%
+// Metrics: LEAD, LEAD CONNECTED, BC, VISIT + Lead→Connected%, Lead→BC%, Lead→Visit%
 function renderGMB() {
   const cf = cityFilter;
   const data = RAW_G.filter(r => cf === 'ALL' || r[0] === cf);
@@ -836,8 +919,10 @@ function renderGMB() {
     lkp[r[0]][r[1]] = r;
   });
 
+  const metrics = ['LEAD','LEAD CONNECTED','BC','VISIT'];
+  const mLabel  = { 'LEAD':'Lead', 'LEAD CONNECTED':'Lead Connected', 'BC':'BC', 'VISIT':'Visit' };
+  let totals = {}; metrics.forEach(m => totals[m] = [0,0,0,0,0,0]);
   let html = '';
-  let tLead = [0,0,0,0,0,0], tLC = [0,0,0,0,0,0];
   let addedSep = false;
 
   cities.forEach(city => {
@@ -846,22 +931,26 @@ function renderGMB() {
       addedSep = true;
     }
     const cityCls = isPriority(city) ? 'city-priority city-star' : '';
-    const lead = lkp[city] && lkp[city]['LEAD'];
-    const lc   = lkp[city] && lkp[city]['LEAD CONNECTED'];
 
-    if (lead) { for(let i=0;i<6;i++) tLead[i] += lead[i+2]; }
-    if (lc)   { for(let i=0;i<6;i++) tLC[i]   += lc[i+2]; }
-
-    [[lead,'Lead'],[lc,'Lead Connected']].forEach(([r,label]) => {
+    // Metric rows
+    metrics.forEach(m => {
+      const r = lkp[city] && lkp[city][m];
       const [d1,l7d,ll7d,mtd,lmtd,lm] = r ? r.slice(2) : [0,0,0,0,0,0];
+      if (r) { for(let i=0;i<6;i++) totals[m][i] += r[i+2]; }
       html += `<tr${isPriority(city)?' class="priority"':''}>
-        <td class="${cityCls}">${city}</td><td>${label}</td>
+        <td class="${cityCls}">${city}</td><td>${mLabel[m]}</td>
         <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
         <td class="col-sep">${fmt(mtd)}</td>
         <td>${vsLMTD(mtd,lmtd)}</td>
         <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td>
       </tr>`;
     });
+
+    // Derived % rows for this city
+    const lead = lkp[city] && lkp[city]['LEAD'];
+    const lc   = lkp[city] && lkp[city]['LEAD CONNECTED'];
+    const bc   = lkp[city] && lkp[city]['BC'];
+    const vis  = lkp[city] && lkp[city]['VISIT'];
 
     if (lead && lc) {
       html += `<tr style="background:rgba(26,107,74,0.03)">
@@ -872,20 +961,54 @@ function renderGMB() {
         <td>—</td><td>${pctCell(lc[6],lead[6])}</td><td>${pctCell(lc[7],lead[7])}</td>
       </tr>`;
     }
+    if (lead && bc) {
+      html += `<tr style="background:rgba(124,58,237,0.02)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#7C3AED;font-weight:700;font-size:11px">Lead → BC %</td>
+        <td>${pctCell(bc[2],lead[2])}</td><td>${pctCell(bc[3],lead[3])}</td><td>${pctCell(bc[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(bc[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(bc[6],lead[6])}</td><td>${pctCell(bc[7],lead[7])}</td>
+      </tr>`;
+    }
+    if (lead && vis) {
+      html += `<tr style="background:rgba(124,58,237,0.02)">
+        <td style="color:var(--text-tertiary);font-size:10px">${city}</td>
+        <td style="color:#7C3AED;font-weight:700;font-size:11px">Lead → Visit %</td>
+        <td>${pctCell(vis[2],lead[2])}</td><td>${pctCell(vis[3],lead[3])}</td><td>${pctCell(vis[4],lead[4])}</td>
+        <td class="col-sep">${pctCell(vis[5],lead[5])}</td>
+        <td>—</td><td>${pctCell(vis[6],lead[6])}</td><td>${pctCell(vis[7],lead[7])}</td>
+      </tr>`;
+    }
   });
 
+  // TOTAL rows
   if (cf === 'ALL') {
-    [['LEAD',tLead,'Lead'],['LEAD CONNECTED',tLC,'Lead Connected']].forEach(([,t,label]) => {
-      html += `<tr class="total-row"><td>TOTAL</td><td>${label}</td>
-        <td>${fmt(t[0])}</td><td>${fmt(t[1])}</td><td>${fmt(t[2])}</td>
-        <td class="col-sep">${fmt(t[3])}</td><td>${vsLMTD(t[3],t[4])}</td>
-        <td>${fmt(t[4])}</td><td>${fmt(t[5])}</td></tr>`;
+    metrics.forEach(m => {
+      const [d1,l7d,ll7d,mtd,lmtd,lm] = totals[m];
+      html += `<tr class="total-row"><td>TOTAL</td><td>${mLabel[m]}</td>
+        <td>${fmt(d1)}</td><td>${fmt(l7d)}</td><td>${fmt(ll7d)}</td>
+        <td class="col-sep">${fmt(mtd)}</td><td>${vsLMTD(mtd,lmtd)}</td>
+        <td>${fmt(lmtd)}</td><td>${fmt(lm)}</td></tr>`;
     });
+    const tLead = totals['LEAD'], tLC = totals['LEAD CONNECTED'];
+    const tBC = totals['BC'],      tV  = totals['VISIT'];
     html += `<tr class="total-row" style="background:rgba(26,107,74,0.05)">
       <td>TOTAL</td><td style="color:#1A6B4A;font-weight:700">Lead → Connected %</td>
       <td>${pctCell(tLC[0],tLead[0])}</td><td>${pctCell(tLC[1],tLead[1])}</td><td>${pctCell(tLC[2],tLead[2])}</td>
       <td class="col-sep">${pctCell(tLC[3],tLead[3])}</td><td>—</td>
       <td>${pctCell(tLC[4],tLead[4])}</td><td>${pctCell(tLC[5],tLead[5])}</td>
+    </tr>`;
+    html += `<tr class="total-row" style="background:rgba(124,58,237,0.05)">
+      <td>TOTAL</td><td style="color:#7C3AED;font-weight:700">Lead → BC %</td>
+      <td>${pctCell(tBC[0],tLead[0])}</td><td>${pctCell(tBC[1],tLead[1])}</td><td>${pctCell(tBC[2],tLead[2])}</td>
+      <td class="col-sep">${pctCell(tBC[3],tLead[3])}</td><td>—</td>
+      <td>${pctCell(tBC[4],tLead[4])}</td><td>${pctCell(tBC[5],tLead[5])}</td>
+    </tr>`;
+    html += `<tr class="total-row" style="background:rgba(124,58,237,0.05)">
+      <td>TOTAL</td><td style="color:#7C3AED;font-weight:700">Lead → Visit %</td>
+      <td>${pctCell(tV[0],tLead[0])}</td><td>${pctCell(tV[1],tLead[1])}</td><td>${pctCell(tV[2],tLead[2])}</td>
+      <td class="col-sep">${pctCell(tV[3],tLead[3])}</td><td>—</td>
+      <td>${pctCell(tV[4],tLead[4])}</td><td>${pctCell(tV[5],tLead[5])}</td>
     </tr>`;
   }
 
@@ -1078,6 +1201,7 @@ function renderAll() {
   const colors = { Classified:'#1860F0', GMB:'#1A6B4A', Affiliates:'#7C3AED', ATM:'#CC7A00' };
   let html = '';
   let addedSep = false;
+  const totals = { Classified:[0,0,0,0,0,0], GMB:[0,0,0,0,0,0], Affiliates:[0,0,0,0,0,0], ATM:[0,0,0,0,0,0] };
 
   cities.forEach(city => {
     if (!isPriority(city) && !addedSep && cf === 'ALL') {
@@ -1089,6 +1213,7 @@ function renderAll() {
       const r = combined.find(x => x[0]===city && x[1]===ch);
       if (!r) return;
       const [,,d1,l7d,ll7d,mtd,lmtd,lm] = r;
+      [d1,l7d,ll7d,mtd,lmtd,lm].forEach((v,i) => totals[ch][i] += (v||0));
       html += `<tr${isPriority(city)?' class="priority"':''}>
         <td class="${cityCls}">${city}</td>
         <td style="color:${colors[ch]};font-weight:700">${ch}</td>
@@ -1099,6 +1224,31 @@ function renderAll() {
       </tr>`;
     });
   });
+
+  // TOTAL rows (per-channel totals + grand total) — only when no city filter
+  if (cf === 'ALL' && html) {
+    const grand = [0,0,0,0,0,0];
+    ['Classified','GMB','Affiliates','ATM'].forEach(ch => {
+      const t = totals[ch];
+      t.forEach((v,i) => grand[i] += v);
+      html += `<tr class="total-row">
+        <td>TOTAL</td>
+        <td style="color:${colors[ch]};font-weight:700">${ch}</td>
+        <td>${fmt(t[0])}</td><td>${fmt(t[1])}</td><td>${fmt(t[2])}</td>
+        <td class="col-sep">${fmt(t[3])}</td>
+        <td>${vsLMTD(t[3],t[4])}</td>
+        <td>${fmt(t[4])}</td><td>${fmt(t[5])}</td>
+      </tr>`;
+    });
+    html += `<tr class="total-row" style="background:rgba(24,96,240,0.12);border-top:2px solid rgba(24,96,240,0.3)">
+      <td>GRAND TOTAL</td>
+      <td style="font-weight:800">All Channels</td>
+      <td>${fmt(grand[0])}</td><td>${fmt(grand[1])}</td><td>${fmt(grand[2])}</td>
+      <td class="col-sep">${fmt(grand[3])}</td>
+      <td>${vsLMTD(grand[3],grand[4])}</td>
+      <td>${fmt(grand[4])}</td><td>${fmt(grand[5])}</td>
+    </tr>`;
+  }
 
   document.getElementById('tbody-all').innerHTML = html || '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-tertiary)">No data</td></tr>';
 }
@@ -1116,6 +1266,11 @@ function showChannel(ch) {
 
 function applyFilters() {
   cityFilter = document.getElementById('cityFilter').value;
+  const dateSel = document.getElementById('dateFilter');
+  if (dateSel && dateSel.value && dateSel.value !== selectedDate) {
+    selectedDate = dateSel.value;
+    rebuildForSelectedDate();
+  }
   renderPage();
 }
 
