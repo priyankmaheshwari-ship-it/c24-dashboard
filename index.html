@@ -1189,9 +1189,11 @@ function chCityOrder(city) {
 
 function getChRows(channel, city) {
   if (!CH_DATA.length) return [];
-  const dates = [...new Set(CH_DATA.map(r => r.run_date))].sort();
-  const latest = dates[dates.length - 1];
-  return CH_DATA.filter(r => r.run_date === latest && r.channel === channel && (!city || city === 'all' || r.city === city));
+  // Use the same date the user selected in the dropdown (falls back to latest if no match)
+  const selDate = document.getElementById('date-select').value;
+  const chDates = [...new Set(CH_DATA.map(r => r.run_date))].sort();
+  const useDate = chDates.includes(selDate) ? selDate : chDates[chDates.length - 1];
+  return CH_DATA.filter(r => r.run_date === useDate && r.channel === channel && (!city || city === 'all' || r.city === city));
 }
 
 function chFmt(n) {
