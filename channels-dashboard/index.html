@@ -433,10 +433,10 @@ function isPriority(city) { return PRIORITY.includes(city); }
 // ─── DATA — loaded from channels_data.csv ────────────────────────────────────
 // CSV schema: run_date, city, channel, metric, D1, L7D, LL7D, MTD, LMTD, LM
 // All rows retained; filtered per selected run_date into RAW_C/G/A/T on demand
-let ALL_ROWS = [];
-let CSV_FETCHED_AT = null;     // Date when we pulled the CSV
-let RAW_C = [], RAW_G = [], RAW_A = [], RAW_T = [];
-let selectedDate = null;        // Currently displayed run_date
+var ALL_ROWS = [];
+var CSV_FETCHED_AT = null;     // Date when we pulled the CSV
+var RAW_C = [], RAW_G = [], RAW_A = [], RAW_T = [];
+var selectedDate = null;        // Currently displayed run_date
 
 function populateDateDropdown(dates, current) {
   const sel = document.getElementById('dateFilter');
@@ -1266,8 +1266,8 @@ function showChannel(ch) {
 
 function applyFilters() {
   cityFilter = document.getElementById('cityFilter').value;
-  const dateSel = document.getElementById('dateFilter');
-  if (dateSel && dateSel.value && dateSel.value !== selectedDate) {
+  var dateSel = document.getElementById('dateFilter');
+  if (dateSel && dateSel.value) {
     selectedDate = dateSel.value;
     rebuildForSelectedDate();
   }
